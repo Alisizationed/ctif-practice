@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: recipe_app_db
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  keycloak-db:
+    image: postgres:latest
+    command: [ "postgres", "-c", "log_statement=all", "-c", "log_destination=stderr" ]
+    environment:
+      POSTGRES_DB: bitnami_keycloak_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "14012:5432"
+    volumes:
+      - keycloak-db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - nginx_network
+
+  keycloak:
+    image: bitnami/keycloak:latest
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_ADMIN_USER: admin
+      KEYCLOAK_ADMIN_PASSWORD: pass
+      KEYCLOAK_DATABASE_HOST: keycloak-db
+      KEYCLOAK_DATABASE_PORT: 5432
+      KEYCLOAK_DATABASE_NAME: bitnami_keycloak_db
+      KEYCLOAK_DATABASE_USER: postgres
+      KEYCLOAK_DATABASE_PASSWORD: postgres
+      KEYCLOAK_ENABLE_HTTPS: "true"
+      KEYCLOAK_HTTPS_USE_PEM: "true"
+      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE : /resources/fullchain.pem
+      KEYCLOAK_HTTPS_CERTIFICATE_FILE : /resources/fullchain.pem
+      KEYCLOAK_HOSTNAME: "localhost"
+      KEYCLOAK_HOSTNAME_STRICT: "false"
+      KEYCLOAK_HTTP_RELATIVE_PATH: /auth
+      KEYCLOAK_SPI_CONTENT_SECURITY_POLICY_PROVIDER: "inline-frame-src-allow-all"
+      KEYCLOAK_PROXY_ADDRESS_FORWARDING: "true"
+      KC_SPI_CONTENT_SECURITY_POLICY_SCRIPTSHASH: "true"
+      KC_SPI_CONTENT_SECURITY_POLICY_USEDEFAULT: "false"
+      KEYCLOAK_WEB_ORIGINS: "+"
+      KEYCLOAK_PRODUCTION: "false"
+    ports:
+      - "8040:8443"
+    volumes:
+      - ./src/main/resources/fullchain.pem:/resources/fullchain.pem
+    networks:
+      - nginx_network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "https://www.mykeycloak.com:8040/auth/realms/master" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  data:
+  keycloak-db:
+
+networks:
+  nginx_network:
+    driver: bridge

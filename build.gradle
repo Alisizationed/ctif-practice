@@ -1,0 +1,48 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.5'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'md.ctif'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
+	implementation 'org.flywaydb:flyway-core:11.8.2'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.8.2'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.postgresql:postgresql:42.7.2'
+	runtimeOnly 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
