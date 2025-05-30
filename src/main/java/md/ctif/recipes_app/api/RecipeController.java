@@ -1,6 +1,7 @@
 package md.ctif.recipes_app.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -38,21 +39,32 @@ public class RecipeController {
         return customService.getAll();
     }
 
-    @PostMapping(path="/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> saveRecipe(
-            @RequestPart("image") FilePart filePart,
-            @Parameter(
-                    required = true,
-                    schema = @Schema(implementation = RecipeDTO.class)
-            )
-            @RequestPart("body") String requestBodyAsJson
-    ) throws JsonProcessingException {
+            @RequestPart("image") Mono<FilePart> filePartMono,
+            @RequestPart("body") Mono<String> requestBodyMono
+    ) {
         ObjectMapper mapper = new ObjectMapper();
-        RecipeDTO recipeDTO = mapper.readValue(requestBodyAsJson, RecipeDTO.class);
-        return fileStorageService.saveFile(filePart)
-                .flatMap(filename -> recipeService.save(recipeDTO, filename))
-                .map(result -> ResponseEntity.ok("Recipe saved successfully with ID: " + result));
+
+        return Mono.zip(filePartMono, requestBodyMono)
+                .flatMap(tuple -> {
+                    FilePart filePart = tuple.getT1();
+                    String json = tuple.getT2();
+
+                    RecipeDTO recipeDTO;
+                    try {
+                        recipeDTO = mapper.readValue(json, RecipeDTO.class);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
+
+                    return fileStorageService.saveFile(filePart)
+                            .flatMap(filename -> recipeService.save(recipeDTO, filename));
+                })
+                .map(result -> ResponseEntity.ok("Recipe saved successfully with ID: " + result))
+                .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body("Failed to save recipe: " + e.getMessage())));
     }
+
 
     @PutMapping(path="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> updateRecipe(

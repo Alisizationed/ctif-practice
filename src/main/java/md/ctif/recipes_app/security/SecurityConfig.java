@@ -5,6 +5,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import md.ctif.recipes_app.converters.KeycloakJwtRolesConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -38,8 +39,10 @@ public class SecurityConfig {
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
                 .authorizeExchange(exchanges -> exchanges
-                                .pathMatchers("/**").permitAll()
-//                                .pathMatchers("/api","/swagger-ui/**","/v3/api-docs.yaml/swagger-config","v3/api-docs.yaml").permitAll()
+                                .pathMatchers(HttpMethod.GET,"/api/recipe/images/v2/**").permitAll()
+                                .pathMatchers("/api","/swagger-ui/**","/v3/api-docs.yaml/swagger-config","v3/api-docs.yaml").permitAll()
+                                .pathMatchers("/**").authenticated()
+//                                .anyExchange().authenticated()
 //                                .pathMatchers("/api/recipe", "/api/recipe/**")
 //                        .permitAll()
 //                                .access((mono, context) ->
@@ -58,7 +61,9 @@ public class SecurityConfig {
                                 .jwtAuthenticationConverter(this::jwtAuthenticationConverter))
                 )
                 .cors(corsSpec -> corsSpec.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()));
+                .csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()))
+
+        ;
 
         return http.build();
     }
@@ -81,7 +86,7 @@ public class SecurityConfig {
                 "http://localhost:5173"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token","Authorization"));
+        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token","Authorization","*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

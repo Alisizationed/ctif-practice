@@ -1,5 +1,6 @@
 package md.ctif.recipes_app.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,8 +24,9 @@ public class Recipe {
     private String title;
     private String description;
     private String image;
-    @Transient
-    private List<ContentBlock> contentBlocks;
+    private JsonNode contents;
+//    @Transient
+//    private List<ContentBlock> contentBlocks;
     @Transient
     private List<Tag> tags;
     @Transient

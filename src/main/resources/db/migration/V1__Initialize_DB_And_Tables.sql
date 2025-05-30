@@ -12,7 +12,8 @@ CREATE TABLE recipe(
    user_profile_id BIGINT REFERENCES user_profile(id),
    title VARCHAR(150) NOT NULL,
    description TEXT NOT NULL,
-   image TEXT
+   image TEXT,
+   contents JSONB NOT NULL
 );
 
 CREATE TABLE tag(
@@ -25,14 +26,14 @@ CREATE TABLE ingredient(
    ingredient VARCHAR(150) NOT NULL UNIQUE
 );
 
-CREATE TABLE content_block(
-   id BIGSERIAL PRIMARY KEY,
-   recipe_id BIGINT REFERENCES recipe(id),
-   type TEXT NOT NULL,
-   text TEXT,
-   url TEXT,
-   position INT NOT NULL
-);
+-- CREATE TABLE content_block(
+--    id BIGSERIAL PRIMARY KEY,
+--    recipe_id BIGINT REFERENCES recipe(id),
+--    type TEXT NOT NULL,
+--    text TEXT,
+--    url TEXT,
+--    position INT NOT NULL
+-- );
 
 CREATE TABLE recipe_ingredient(
    recipe_id BIGINT REFERENCES recipe(id),

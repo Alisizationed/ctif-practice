@@ -1,8 +1,10 @@
 package md.ctif.recipes_app.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import md.ctif.recipes_app.DTO.RecipeDTO;
-import md.ctif.recipes_app.entity.*;
-import md.ctif.recipes_app.repository.*;
+import md.ctif.recipes_app.entity.Recipe;
+import md.ctif.recipes_app.repository.RecipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -14,51 +16,8 @@ public class RecipeService {
     @Autowired
     private RecipeRepository recipeRepository;
     @Autowired
-    private ContentBlockService contentBlockService;
-    @Autowired
     private FileStorageService fileStorageService;
-//    @Autowired
-//    private TagService tagService;
-//    @Autowired
-//    private RecipeTagService recipeTagService;
-//    @Autowired
-//    private ContentBlockRepository contentBlockRepository;
-//    @Autowired
-//    private TagRepository tagRepository;
-//    @Autowired
-//    private IngredientRepository ingredientRepository;
-//    @Autowired
-//    private RecipeIngredientRepository recipeIngredientRepository;
-
-    public Mono<ResponseEntity<String>> save(RecipeDTO recipeDTO, String imagePath) {
-        Recipe recipe = Recipe.builder()
-                .userProfileId(recipeDTO.userProfileId())
-                .title(recipeDTO.title())
-                .description(recipeDTO.description())
-                .image(imagePath)
-                .build();
-
-
-//
-//        recipeRepository.save(recipe)
-//                .log()
-//                .subscribe();
-
-
-//        contentBlockService.save();
-
-
-
-        return recipeRepository.save(recipe)
-                .flatMap(savedRecipe ->
-                        Flux.fromIterable(recipeDTO.contentBlocks())
-                                .index()
-                                .flatMap(tuple ->
-                                        contentBlockService.save(tuple.getT2(), savedRecipe.getId(), tuple.getT1() + 1)
-                                )
-                                .then(Mono.just(savedRecipe))
-                )
-//                .flatMap(savedRecipe ->
+    //                .flatMap(savedRecipe ->
 //                        Flux.fromIterable(recipeDTO.tags())
 //                                .flatMap(tag -> tagService.save(tag)
 //                                        .then(
@@ -71,6 +30,23 @@ public class RecipeService {
 //                                )
 //                                .then(Mono.just(savedRecipe))
 //                )
+    public Mono<ResponseEntity<String>> save(RecipeDTO recipeDTO, String imagePath) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Recipe recipe = null;
+        try {
+            recipe = Recipe.builder()
+                    .userProfileId(recipeDTO.userProfileId())
+                    .title(recipeDTO.title())
+                    .description(recipeDTO.description())
+                    .contents(objectMapper.readTree(recipeDTO.contents()))
+                    .image(imagePath)
+                    .build();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(recipe);
+        System.out.println(recipe.getContents().getClass());
+        return recipeRepository.save(recipe)
                 .map(saved -> ResponseEntity.ok("Recipe saved with ID: " + saved.getId()))
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body("Error: " + e.getMessage())));
     }
@@ -139,12 +115,13 @@ public class RecipeService {
                     }
                     existingRecipe.setUserProfileId(recipeDTO.userProfileId());
 
-                    return contentBlockService.deleteByRecipeId(existingRecipe.getId())
-                            .thenMany(Flux.fromIterable(recipeDTO.contentBlocks())
-                                    .index()
-                                    .flatMap(tuple -> contentBlockService.save(tuple.getT2(), existingRecipe.getId(), tuple.getT1() + 1)))
-                            .then(recipeRepository.save(existingRecipe))
-                            .map(saved -> ResponseEntity.ok("Recipe updated with ID: " + saved.getId()));
+//                    return contentBlockService.deleteByRecipeId(existingRecipe.getId())
+//                            .thenMany(Flux.fromIterable(recipeDTO.contentBlocks())
+//                                    .index()
+//                                    .flatMap(tuple -> contentBlockService.save(tuple.getT2(), existingRecipe.getId(), tuple.getT1() + 1)))
+//                            .then(recipeRepository.save(existingRecipe))
+                    return recipeRepository.save(existingRecipe)
+                        .map(saved -> ResponseEntity.ok("Recipe updated with ID: " + saved.getId()));
                 })
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body("Update failed: " + e.getMessage())));
     }

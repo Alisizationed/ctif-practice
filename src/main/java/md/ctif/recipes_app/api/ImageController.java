@@ -3,14 +3,13 @@ package md.ctif.recipes_app.api;
 import md.ctif.recipes_app.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.io.IOException;
-import java.nio.file.Files;
 
 @RestController
 @RequestMapping("/api/recipe")
@@ -31,10 +30,16 @@ public class ImageController {
                 });
     }
     @GetMapping("/images/v2/{filename}")
-    public Mono<byte[]> getImageV2(@PathVariable String filename) throws IOException {
-        return Mono.just();
-    }
+    public Mono<ResponseEntity<byte[]>> getImageV2(@PathVariable String filename) {
+        byte[] fileContent = fileStorageService.loadAsBytes(filename);
 
+        return Mono.just(
+                ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(fileContent)
+        );
+    }
 
     @PostMapping(path="/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<String> saveImage(
