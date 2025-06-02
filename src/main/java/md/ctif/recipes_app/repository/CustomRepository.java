@@ -92,7 +92,6 @@ public class CustomRepository {
                             first.getTitle(),
                             first.getDescription(),
                             first.getContents(),
-//                            new ArrayList<>(contentBlocks.values()),
                             new ArrayList<>(tags.values()),
                             new ArrayList<>(ingredients.values())
                     );

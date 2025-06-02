@@ -10,14 +10,12 @@ import md.ctif.recipes_app.service.CustomService;
 import md.ctif.recipes_app.service.FileStorageService;
 import md.ctif.recipes_app.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 @RestController
 @RequestMapping("/api/recipe")
@@ -35,9 +33,7 @@ public class RecipeController {
     }
 
     @GetMapping("/")
-    public Flux<RecipeDTO> getAllRecipes() {
-        return customService.getAll();
-    }
+    public Flux<RecipeDTO> getAllRecipes() { return customService.getAll(); }
 
     @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> saveRecipe(
