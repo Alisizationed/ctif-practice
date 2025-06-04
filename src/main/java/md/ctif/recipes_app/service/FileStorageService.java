@@ -38,7 +38,8 @@ public class FileStorageService {
         Path path = rootLocation.resolve(newFileName);
 
         return filePart.transferTo(path)
-                .then(Mono.just(newFileName));
+                .then(Mono.just(newFileName))
+                .onErrorResume(ex -> Mono.just(""));
     }
 
     public Stream<Path> loadAll() {

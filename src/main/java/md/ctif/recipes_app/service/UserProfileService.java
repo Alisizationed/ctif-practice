@@ -24,20 +24,20 @@ public class UserProfileService {
         return userProfileRepository.findAll();
     }
 
-    public Mono<ResponseEntity<String>> save(UserProfileDTO userProfileDTO, String imagePath) {
+    public Mono<ResponseEntity<String>> save(UserProfileDTO userProfileDTO) {
         UserProfile userProfile = UserProfile.builder()
                 .keycloakId(userProfileDTO.keycloakId())
                 .firstName(userProfileDTO.firstName())
                 .lastName(userProfileDTO.lastName())
                 .bio(userProfileDTO.bio())
-                .profilePicture(imagePath)
+                .profilePicture(userProfileDTO.profilePicture())
                 .build();
         return userProfileRepository.save(userProfile)
                 .map(saved -> ResponseEntity.ok("User saved with ID: " + saved.getId()))
                 .onErrorResume(e -> Mono.just(ResponseEntity.internalServerError().body("Error: " + e.getMessage())));
     }
 
-    public Mono<ResponseEntity<String>> update(Long id, UserProfileDTO userProfileDTO, String imagePath) {
+    public Mono<ResponseEntity<String>> update(Long id, UserProfileDTO userProfileDTO) {
         return userProfileRepository.findById(id)
                 .flatMap(user -> {
                     user.setKeycloakId(user.getKeycloakId());
@@ -45,7 +45,7 @@ public class UserProfileService {
                     user.setLastName(userProfileDTO.lastName());
                     user.setBio(userProfileDTO.bio());
                     fileStorageService.delete(user.getProfilePicture());
-                    user.setProfilePicture(imagePath);
+                    user.setProfilePicture(userProfileDTO.profilePicture());
                     return userProfileRepository.save(user);
                 })
                 .map(saved -> ResponseEntity.ok("User updated with ID: " + saved.getId()))
@@ -54,5 +54,9 @@ public class UserProfileService {
 
     public Mono<Void> deleteById(Long id) {
         return userProfileRepository.deleteById(id);
+    }
+
+    public Mono<UserProfile> getByKeycloakId(Long id) {
+        return userProfileRepository.findByKeycloakId(id);
     }
 }

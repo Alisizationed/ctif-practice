@@ -53,7 +53,6 @@ public class SecurityConfig {
 //                                            return Mono.just(new AuthorizationDecision(hasRole));
 //                                        })
 //                                )
-
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

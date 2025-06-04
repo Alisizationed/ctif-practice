@@ -30,41 +30,30 @@ public class UserProfileController {
         return userProfileService.getById(id);
     }
 
+    @GetMapping("/keycloak/{id}")
+    public Mono<UserProfile> getUserProfileByKeycloakId(@PathVariable Long id) {
+        return userProfileService.getByKeycloakId(id);
+    }
+
     @GetMapping("/")
     public Flux<UserProfile> getAllUserProfiles() {
         return userProfileService.getAll();
     }
 
-    @PostMapping(path="/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/")
     public Mono<ResponseEntity<String>> saveUserProfile(
-            @RequestPart("files") FilePart filePart,
-            @Parameter(
-                    required = true,
-                    schema = @Schema(implementation = UserProfileDTO.class)
-            )
-            @RequestPart("body") String requestBodyAsJson
-    ) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        UserProfileDTO userProfileDTO = mapper.readValue(requestBodyAsJson, UserProfileDTO.class);
-        return fileStorageService.saveFile(filePart)
-                .flatMap(filename -> userProfileService.save(userProfileDTO, filename))
+            @RequestBody UserProfileDTO userProfileDTO
+    ) {
+        return userProfileService.save(userProfileDTO)
                 .map(result -> ResponseEntity.ok("User saved successfully with ID: " + result));
     }
 
-    @PutMapping(path="/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> updateUserProfile(
             @PathVariable Long id,
-            @RequestPart("files") FilePart filePart,
-            @Parameter(
-                    required = true,
-                    schema = @Schema(implementation = UserProfileDTO.class)
-            )
-            @RequestPart("body") String requestBodyAsJson
+            @RequestBody UserProfileDTO userProfileDTO
     ) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        UserProfileDTO userProfileDTO = mapper.readValue(requestBodyAsJson, UserProfileDTO.class);
-        return fileStorageService.saveFile(filePart)
-                .flatMap(filename -> userProfileService.update(id, userProfileDTO, filename))
+        return userProfileService.update(id, userProfileDTO)
                 .map(result -> ResponseEntity.ok("User updated successfully with ID: " + result));
     }
 
