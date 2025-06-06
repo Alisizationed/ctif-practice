@@ -11,15 +11,28 @@ import reactor.core.publisher.Mono;
 public class TagService {
     @Autowired
     private TagRepository tagRepository;
+    @Autowired
+    private RecipeTagService recipeTagService;
+
     public Mono<Tag> getById(Long id) {
         return tagRepository.findById(id);
     }
+
     public Flux<Tag> getAll() {
         return tagRepository.findAll();
     }
-    public Mono<Tag> save(Tag tag) {
-        return tagRepository.save(tag);
+
+    public Mono<Tag> save(String tag, Long recipeId) {
+        return tagRepository.findByTag(tag)
+                .switchIfEmpty(
+                        tagRepository.save(Tag.builder().tag(tag).build())
+                )
+                .flatMap(savedTag ->
+                        recipeTagService.saveById(savedTag.getId(), recipeId)
+                                .thenReturn(savedTag)
+                );
     }
+
     public Mono<Void> delete(Long id) {
         return tagRepository.deleteById(id);
     }

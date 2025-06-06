@@ -1,5 +1,6 @@
 package md.ctif.recipes_app.service;
 
+import md.ctif.recipes_app.DTO.IngredientDTO;
 import md.ctif.recipes_app.entity.Ingredient;
 import md.ctif.recipes_app.repository.IngredientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import reactor.core.publisher.Mono;
 public class IngredientService {
     @Autowired
     private IngredientRepository ingredientRepository;
+    @Autowired
+    private RecipeIngredientService recipeIngredientService;
 
     public Mono<Ingredient> getIngredientById(Long id) {
         return ingredientRepository.findById(id);
@@ -35,5 +38,20 @@ public class IngredientService {
 
     public Mono<Void> deleteById(Long id) {
         return ingredientRepository.deleteById(id);
+    }
+
+    public Mono<Ingredient> saveByDTOAndId(IngredientDTO ingredientDTO, Long id) {
+        return ingredientRepository.findByIngredient(ingredientDTO.name())
+                .switchIfEmpty(
+                        ingredientRepository.save(
+                                Ingredient.builder()
+                                        .ingredient(ingredientDTO.name())
+                                        .build())
+                )
+                .flatMap(savedIngredient ->
+                        recipeIngredientService
+                                .saveByDTOandId(ingredientDTO, savedIngredient.getId(), id)
+                                .thenReturn(savedIngredient)
+                );
     }
 }

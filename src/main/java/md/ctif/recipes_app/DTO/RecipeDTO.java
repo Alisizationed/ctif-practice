@@ -6,11 +6,10 @@ import java.util.List;
 
 public record RecipeDTO(
         Long id,
-        Long userProfileId,
+        String keycloakId,
         String image,
         String title,
         String description,
-//        List<ContentBlockDTO> contentBlocks,
         String contents,
         List<Tag> tags,
         List<IngredientDTO> ingredients) {

@@ -47,11 +47,12 @@ services:
       KEYCLOAK_HTTPS_USE_PEM: "true"
       KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE : /resources/fullchain.pem
       KEYCLOAK_HTTPS_CERTIFICATE_FILE : /resources/fullchain.pem
-      KEYCLOAK_HOSTNAME: "localhost"
+      KEYCLOAK_HOSTNAME: "www.mykeycloak.com"
       KEYCLOAK_HOSTNAME_STRICT: "false"
       KEYCLOAK_HTTP_RELATIVE_PATH: /auth
       KEYCLOAK_SPI_CONTENT_SECURITY_POLICY_PROVIDER: "inline-frame-src-allow-all"
       KEYCLOAK_PROXY_ADDRESS_FORWARDING: "true"
+      KC_CONTENT_SECURITY_POLICY: "frame-src *;"
       KC_SPI_CONTENT_SECURITY_POLICY_SCRIPTSHASH: "true"
       KC_SPI_CONTENT_SECURITY_POLICY_USEDEFAULT: "false"
       #KC_FEATURES_DISABLED: impersonation

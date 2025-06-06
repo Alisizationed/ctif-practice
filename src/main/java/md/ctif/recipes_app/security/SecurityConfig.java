@@ -3,10 +3,13 @@ package md.ctif.recipes_app.security;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import md.ctif.recipes_app.converters.KeycloakJwtRolesConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -34,25 +37,27 @@ import java.util.List;
 @EnableReactiveMethodSecurity
 public class SecurityConfig {
     private final KeycloakJwtRolesConverter rolesConverter = new KeycloakJwtRolesConverter();
+    @Autowired
+    private Environment env;
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
                 .authorizeExchange(exchanges -> exchanges
-                                .pathMatchers(HttpMethod.GET,"/api/recipe/images/v2/**").permitAll()
-                                .pathMatchers("/api","/swagger-ui/**","/v3/api-docs.yaml/swagger-config","v3/api-docs.yaml").permitAll()
-                                .pathMatchers("/**").authenticated()
-//                                .anyExchange().authenticated()
-//                                .pathMatchers("/api/recipe", "/api/recipe/**")
-//                        .permitAll()
-//                                .access((mono, context) ->
-//                                        mono.flatMap(auth -> {
-//                                            boolean hasRole = auth.getAuthorities().stream()
-//                                                    .anyMatch(granted -> granted.getAuthority()
-//                                                            .equals(KeycloakJwtRolesConverter.PREFIX_RESOURCE_ROLE + "second-client_user"));
-//                                            return Mono.just(new AuthorizationDecision(hasRole));
-//                                        })
-//                                )
+                                .pathMatchers(HttpMethod.GET, "/api/recipe/images/v2/**").permitAll()
+                                .pathMatchers("/api", "/swagger-ui/**", "/v3/api-docs.yaml/swagger-config", "v3/api-docs.yaml").permitAll()
+//                                .pathMatchers("/**").authenticated()
+                                .pathMatchers("/api/recipe", "/api/recipe/**")
+//                                .permitAll()
+                                .access((mono, context) ->
+                                        mono.flatMap(auth -> {
+                                            boolean hasRole = auth.getAuthorities().stream()
+                                                    .anyMatch(granted -> granted.getAuthority()
+                                                            .equals(KeycloakJwtRolesConverter.PREFIX_RESOURCE_ROLE + "second-client_user"));
+                                            return Mono.just(new AuthorizationDecision(hasRole));
+                                        })
+                                )
+                                .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
@@ -77,15 +82,15 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "https://localhost:8453",
                 "https://localhost:7443",
-                "https://localhost:8050",
-                "https://www.acasa.com:8050",
-                "http://localhost:14082",
+                "https://localhost:8040",
+                "https://www.mykeycloak.com:8040",
+                "http://localhost:14012",
                 "http://localhost:8080",
                 "http://localhost:3000",
                 "http://localhost:5173"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token","Authorization","*"));
+        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token", "Authorization", "*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -110,7 +115,7 @@ public class SecurityConfig {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
 
-        String jwkSetUri = "https://localhost:8040/auth/realms/recipe-app/protocol/openid-connect/certs";
+        String jwkSetUri = env.getProperty("spring.security.oauth2.resourceserver.jwt.jwk-set-uri");
 
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri)
                 .webClient(webClient)

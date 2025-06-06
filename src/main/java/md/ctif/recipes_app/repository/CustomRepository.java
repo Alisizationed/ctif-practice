@@ -1,7 +1,6 @@
 package md.ctif.recipes_app.repository;
 
-
-import com.fasterxml.jackson.databind.JsonNode;
+import io.r2dbc.spi.Row;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,17 +15,24 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
+@AllArgsConstructor
 public class CustomRepository {
-    @Autowired
-    private DatabaseClient client;
+    private final DatabaseClient client;
 
     public Mono<RecipeDTO> fetchRecipeDetails(Long recipeId) {
-        Flux<FlatRecipeRow> flatRows = client.sql("""
+        Flux<FlatRecipeRow> flatRows = getFlatRecipeRowFlux(recipeId);
+        return flatRows.collectList()
+                .mapNotNull(this::getRecipeDTO);
+    }
+
+    private Flux<FlatRecipeRow> getFlatRecipeRowFlux(Long recipeId) {
+        return client.sql("""
                             SELECT 
-                              r.id AS r_id, r.user_profile_id, r.title, r.description, r.image AS r_image, r.contents,
+                              r.id AS r_id, r.keycloak_id, r.title, r.description, r.image AS r_image, r.contents,
                               t.id AS tag_id, t.tag AS tag_name,
                               i.id AS ing_id, i.ingredient AS ing_name, ri.amount AS ing_quantity, ri.measure AS ing_measure
                             FROM recipe r
@@ -37,72 +43,69 @@ public class CustomRepository {
                             WHERE r.id = $1
                         """)
                 .bind(0, recipeId)
-                .map((row, meta) -> new FlatRecipeRow(
-                        row.get("r_id", Long.class),
-                        row.get("user_profile_id", Long.class),
-                        row.get("title", String.class),
-                        row.get("description", String.class),
-                        row.get("r_image", String.class),
-                        row.get("contents", String.class),
-                        row.get("tag_id", Long.class),
-                        row.get("tag_name", String.class),
-                        row.get("ing_id", Long.class),
-                        row.get("ing_name", String.class),
-                        row.get("ing_quantity", Long.class),
-                        row.get("ing_measure", String.class)
-                ))
+                .map((row, meta) -> getFlatRecipeRow(row))
                 .all();
+    }
 
-        Mono<RecipeDTO> recipeMono = flatRows.collectList()
-                .map(rows -> {
-                    if (rows.isEmpty()) return null;
+    private FlatRecipeRow getFlatRecipeRow(Row row) {
+        return new FlatRecipeRow(
+                row.get("r_id", Long.class),
+                row.get("keycloak_id", String.class),
+                row.get("title", String.class),
+                row.get("description", String.class),
+                row.get("r_image", String.class),
+                row.get("contents", String.class),
+                row.get("tag_id", Long.class),
+                row.get("tag_name", String.class),
+                row.get("ing_id", Long.class),
+                row.get("ing_name", String.class),
+                row.get("ing_quantity", Long.class),
+                row.get("ing_measure", String.class)
+        );
+    }
 
-                    FlatRecipeRow first = rows.get(0);
+    private RecipeDTO getRecipeDTO(List<FlatRecipeRow> rows) {
+        if (rows.isEmpty()) return null;
 
-//                    Map<Long, ContentBlockDTO> contentBlocks = new LinkedHashMap<>();
-                    Map<Long, Tag> tags = new LinkedHashMap<>();
-                    Map<Long, IngredientDTO> ingredients = new LinkedHashMap<>();
+        FlatRecipeRow first = rows.getFirst();
 
-                    for (FlatRecipeRow row : rows) {
-//                        if (row.getContentBlockId() != null && !contentBlocks.containsKey(row.getContentBlockId())) {
-//                            contentBlocks.put(row.getContentBlockPosition(),
-//                                    (row.getContentBlockType().equals("image")) ?
-//                                            new ImageBlockDTO(row.getContentBlockType(),
-//                                                    new ImageBlockDTO.ImageData(
-//                                                            new ImageBlockDTO.ImageData.File(row.getContentBlockUrl()
-//                                                            )))
-//                                            :
-//                                            new ParagraphBlockDTO(row.getContentBlockType(),
-//                                                    new ParagraphBlockDTO.ParagraphData(row.getContentBlockText()
-//                                                    )));
-//                        }
-                        if (row.getTagId() != null && !tags.containsKey(row.getTagId())) {
-                            tags.put(row.getTagId(), new Tag(row.getTagId(), row.getTagName()));
-                        }
-                        if (row.getIngredientId() != null && !ingredients.containsKey(row.getIngredientId())) {
-                            ingredients.put(row.getIngredientId(),
-                                    new IngredientDTO(row.getIngredientId(), row.getIngredientName(), row.getIngredientQuantity(), row.getIngredientMeasure()));
-                        }
-                    }
+        Map<Long, Tag> tags = new LinkedHashMap<>();
+        Map<Long, IngredientDTO> ingredients = new LinkedHashMap<>();
 
-                    return new RecipeDTO(
-                            first.getRecipeId(),
-                            first.getUserProfileId(),
-                            first.getImageUrl(),
-                            first.getTitle(),
-                            first.getDescription(),
-                            first.getContents(),
-                            new ArrayList<>(tags.values()),
-                            new ArrayList<>(ingredients.values())
-                    );
-                });
-        return recipeMono;
+        for (FlatRecipeRow row : rows) {
+            if (row.getTagId() != null && !tags.containsKey(row.getTagId())) {
+                tags.put(row.getTagId(), new Tag(row.getTagId(), row.getTagName()));
+            }
+            if (row.getIngredientId() != null && !ingredients.containsKey(row.getIngredientId())) {
+                ingredients.put(row.getIngredientId(),
+                        new IngredientDTO(row.getIngredientId(), row.getIngredientName(), row.getIngredientQuantity(), row.getIngredientMeasure()));
+            }
+        }
+
+        return new RecipeDTO(
+                first.getRecipeId(),
+                first.getKeycloakId(),
+                first.getImageUrl(),
+                first.getTitle(),
+                first.getDescription(),
+                first.getContents(),
+                new ArrayList<>(tags.values()),
+                new ArrayList<>(ingredients.values())
+        );
     }
 
     public Flux<RecipeDTO> getAllRecipes() {
-        Flux<FlatRecipeRow> flatRows = client.sql("""
+        Flux<FlatRecipeRow> flatRows = getFlatRecipeRowFlux();
+
+        return flatRows
+                .groupBy(FlatRecipeRow::getRecipeId)
+                .flatMap(group -> group.collectList().mapNotNull(this::getRecipeDTO));
+    }
+
+    private Flux<FlatRecipeRow> getFlatRecipeRowFlux() {
+        return client.sql("""
                             SELECT 
-                              r.id AS r_id, r.user_profile_id, r.title, r.description, r.image AS r_image, r.contents,
+                              r.id AS r_id, r.keycloak_id, r.title, r.description, r.image AS r_image, r.contents,
                               t.id AS tag_id, t.tag AS tag_name,
                               i.id AS ing_id, i.ingredient AS ing_name, ri.amount AS ing_quantity, ri.measure AS ing_measure
                             FROM recipe r
@@ -111,85 +114,20 @@ public class CustomRepository {
                             LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
                             LEFT JOIN ingredient i ON i.id = ri.ingredient_id
                         """)
-                .map((row, meta) -> new FlatRecipeRow(
-                        row.get("r_id", Long.class),
-                        row.get("user_profile_id", Long.class),
-                        row.get("title", String.class),
-                        row.get("description", String.class),
-                        row.get("r_image", String.class),
-                        row.get("contents", String.class),
-                        row.get("tag_id", Long.class),
-                        row.get("tag_name", String.class),
-                        row.get("ing_id", Long.class),
-                        row.get("ing_name", String.class),
-                        row.get("ing_quantity", Long.class),
-                        row.get("ing_measure", String.class)
-                ))
+                .map((row, meta) -> getFlatRecipeRow(row))
                 .all();
-
-        Flux<RecipeDTO> recipeFlux = flatRows
-                .groupBy(FlatRecipeRow::getRecipeId)
-                .flatMap(group -> group.collectList().map(rows -> {
-                    if (rows.isEmpty()) return null;
-
-                    FlatRecipeRow first = rows.get(0);
-
-//                    Map<Long, ContentBlockDTO> contentBlocks = new LinkedHashMap<>();
-                    Map<Long, Tag> tags = new LinkedHashMap<>();
-                    Map<Long, IngredientDTO> ingredients = new LinkedHashMap<>();
-
-                    for (FlatRecipeRow row : rows) {
-//                        if (row.getContentBlockId() != null && !contentBlocks.containsKey(row.getContentBlockId())) {
-//                            contentBlocks.put(row.getContentBlockPosition(),
-//                                    "image".equals(row.getContentBlockType())
-//                                            ? new ImageBlockDTO(row.getContentBlockType(),
-//                                            new ImageBlockDTO.ImageData(
-//                                                    new ImageBlockDTO.ImageData.File(row.getContentBlockUrl())))
-//                                            : new ParagraphBlockDTO(row.getContentBlockType(),
-//                                            new ParagraphBlockDTO.ParagraphData(row.getContentBlockText())));
-//                        }
-                        if (row.getTagId() != null && !tags.containsKey(row.getTagId())) {
-                            tags.put(row.getTagId(), new Tag(row.getTagId(), row.getTagName()));
-                        }
-                        if (row.getIngredientId() != null && !ingredients.containsKey(row.getIngredientId())) {
-                            ingredients.put(row.getIngredientId(),
-                                    new IngredientDTO(row.getIngredientId(), row.getIngredientName(),
-                                            row.getIngredientQuantity(), row.getIngredientMeasure()));
-                        }
-                    }
-
-                    return new RecipeDTO(
-                            first.getRecipeId(),
-                            first.getUserProfileId(),
-                            first.getImageUrl(),
-                            first.getTitle(),
-                            first.getDescription(),
-                            first.getContents(),
-//                            new ArrayList<>(contentBlocks.values()),
-                            new ArrayList<>(tags.values()),
-                            new ArrayList<>(ingredients.values())
-                    );
-                }));
-        return recipeFlux;
     }
 
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    private class FlatRecipeRow {
+    private static class FlatRecipeRow {
         private Long recipeId;
-        private Long userProfileId;
+        private String keycloakId;
         private String title;
         private String description;
         private String imageUrl;
-
         private String contents;
-
-//        private Long contentBlockId;
-//        private String contentBlockType;
-//        private String contentBlockText;
-//        private String contentBlockUrl;
-//        private Long contentBlockPosition;
 
         private Long tagId;
         private String tagName;

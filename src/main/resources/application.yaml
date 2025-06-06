@@ -30,7 +30,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://www.acasa.com:8040/auth/realms/recipe-app
+          issuer-uri: https://www.mykeycloak.com:8040/auth/realms/recipe-app
           jwk-set-uri: "${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs"
 
 
