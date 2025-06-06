@@ -32,4 +32,16 @@ public class RecipeTagService {
                         .build()
         );
     }
+
+    public Mono<RecipeTag> upsertRecipeTag(Long tagId, Long recipeId) {
+        return recipeTagRepository.findByRecipeIdAndTagId(recipeId, tagId)
+                .switchIfEmpty(
+                        recipeTagRepository.save(
+                                RecipeTag.builder()
+                                        .tagId(tagId)
+                                        .recipeId(recipeId)
+                                        .build()
+                        )
+                );
+    }
 }

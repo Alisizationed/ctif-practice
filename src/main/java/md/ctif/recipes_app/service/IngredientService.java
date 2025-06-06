@@ -27,13 +27,20 @@ public class IngredientService {
         return ingredientRepository.save(ingredient);
     }
 
-    public Mono<Ingredient> update(Long id, Ingredient ingredient) {
-        return ingredientRepository.findById(id)
-                .switchIfEmpty(Mono.error(new RuntimeException("Not found")))
-                .flatMap(ingredient1 -> {
-                    ingredient1.setIngredient(ingredient.getIngredient());
-                    return ingredientRepository.save(ingredient1);
-                });
+    public Mono<Void> update(Long recipeId, Flux<IngredientDTO> ingredientDTOs) {
+        return ingredientDTOs.flatMap(ingredientDTO ->
+                        ingredientRepository.findByIngredient(ingredientDTO.ingredient())
+                                .switchIfEmpty(ingredientRepository.save(
+                                        Ingredient.builder()
+                                                .ingredient(ingredientDTO.ingredient())
+                                                .build()
+                                )).flatMap(savedIngredient ->
+                                        recipeIngredientService.saveOrUpdate(
+                                                ingredientDTO, savedIngredient.getId(), recipeId
+                                        )
+                                )
+                )
+                .then();
     }
 
     public Mono<Void> deleteById(Long id) {
@@ -41,11 +48,11 @@ public class IngredientService {
     }
 
     public Mono<Ingredient> saveByDTOAndId(IngredientDTO ingredientDTO, Long id) {
-        return ingredientRepository.findByIngredient(ingredientDTO.name())
+        return ingredientRepository.findByIngredient(ingredientDTO.ingredient())
                 .switchIfEmpty(
                         ingredientRepository.save(
                                 Ingredient.builder()
-                                        .ingredient(ingredientDTO.name())
+                                        .ingredient(ingredientDTO.ingredient())
                                         .build())
                 )
                 .flatMap(savedIngredient ->

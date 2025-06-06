@@ -36,4 +36,17 @@ public class TagService {
     public Mono<Void> delete(Long id) {
         return tagRepository.deleteById(id);
     }
+
+    public Mono<Void> update(Flux<Tag> tags, Long recipeId) {
+        return tags.flatMap(tag ->
+                        tagRepository.findByTag(tag.getTag())
+                                .switchIfEmpty(
+                                        tagRepository.save(tag).flatMap(savedTag ->
+                                                recipeTagService.saveById(savedTag.getId(), recipeId)
+                                                        .thenReturn(savedTag)
+                                        )
+                                )
+                )
+                .then();
+    }
 }

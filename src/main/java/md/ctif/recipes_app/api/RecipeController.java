@@ -16,7 +16,6 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 @AllArgsConstructor
 @RestController
@@ -46,44 +45,27 @@ public class RecipeController {
             @RequestPart("image") Mono<FilePart> filePartMono,
             @RequestPart("body") Mono<String> requestBodyMono
     ) {
-        return Mono.zip(filePartMono, requestBodyMono)
-                .flatMap(this::saveAndParseRecipe)
+        return requestBodyMono
+                .flatMap(json -> parseRecipe(json)
+                        .flatMap(recipe -> filePartMono.flatMap(fileStorageService::saveFile)
+                                .map(recipe::withImage))
+                        .flatMap(recipeService::save))
                 .map(result -> ResponseEntity.ok("Recipe saved successfully with ID: " + result))
                 .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().body("Failed to save recipe: " + e.getMessage())));
     }
 
-    private Mono<ResponseEntity<String>> saveAndParseRecipe(Tuple2<FilePart, String> tuple) {
-        ObjectMapper mapper = new ObjectMapper();
-        FilePart filePart = tuple.getT1();
-        String json = tuple.getT2();
-
-        RecipeDTO recipeDTO;
+    private Mono<RecipeDTO> parseRecipe(String json) {
         try {
-            recipeDTO = mapper.readValue(json, RecipeDTO.class);
+            return Mono.just(new ObjectMapper().readValue(json, RecipeDTO.class));
         } catch (JsonProcessingException e) {
             return Mono.error(e);
         }
-
-        return fileStorageService.saveFile(filePart)
-                .flatMap(filename -> recipeService.save(new RecipeDTO(
-                                        recipeDTO.id(),
-                                        recipeDTO.keycloakId(),
-                                        filename,
-                                        recipeDTO.title(),
-                                        recipeDTO.description(),
-                                        recipeDTO.contents(),
-                                        recipeDTO.tags(),
-                                        recipeDTO.ingredients()
-                                )
-                        )
-                );
     }
-
 
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> updateRecipe(
             @PathVariable Long id,
-            @RequestPart("image") FilePart filePart,
+            @RequestPart(name="image", required = false) FilePart filePart,
             @Parameter(
                     required = true,
                     schema = @Schema(implementation = RecipeDTO.class)
@@ -92,9 +74,13 @@ public class RecipeController {
     ) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         RecipeDTO recipeDTO = mapper.readValue(requestBodyAsJson, RecipeDTO.class);
-        return fileStorageService.saveFile(filePart)
-                .flatMap(filename -> recipeService.update(id, recipeDTO, filename))
-                .map(result -> ResponseEntity.ok("Recipe updated successfully with ID: " + result));
+
+        if (filePart != null) {
+            return fileStorageService.saveFile(filePart)
+                    .flatMap(filename -> recipeService.update(id, recipeDTO, filename));
+        } else {
+            return recipeService.update(id, recipeDTO, null);
+        }
     }
 
     @DeleteMapping("/{id}")

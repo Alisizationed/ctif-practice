@@ -13,4 +13,7 @@ public record RecipeDTO(
         String contents,
         List<Tag> tags,
         List<IngredientDTO> ingredients) {
+    public RecipeDTO withImage(String image) {
+        return new RecipeDTO(id(), keycloakId(), image, title(), description(), contents(), tags(), ingredients());
+    }
 }

@@ -43,5 +43,17 @@ public class Recipe {
         }
         this.image = recipeDTO.image();
     }
-
+    public void update(RecipeDTO recipeDTO) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        this.title = recipeDTO.title();
+        this.description = recipeDTO.description();
+        if(recipeDTO.image() != null && !recipeDTO.image().isBlank()) {
+            this.image = recipeDTO.image();
+        }
+        try {
+            this.contents = objectMapper.readTree(recipeDTO.contents());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
