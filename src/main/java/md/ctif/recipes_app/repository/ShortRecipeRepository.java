@@ -15,6 +15,15 @@ import java.util.List;
 @Repository
 public class ShortRecipeRepository {
     private final DatabaseClient client;
+    private final static String GET_RECIPES_SQL = """
+                    SELECT 
+                      r.id AS r_id, r.created_by, r.title, r.image AS r_image
+                    FROM recipe r
+                    LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
+                    LEFT JOIN tag t ON t.id = rt.tag_id
+                    LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
+                    LEFT JOIN ingredient i ON i.id = ri.ingredient_id
+                """;;
 
     public Flux<ShortRecipeDTO> getAllRecipesShort() {
         Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFlux();
@@ -41,37 +50,21 @@ public class ShortRecipeRepository {
     private FlatShortRecipeRow getFlatShortRecipeRow(Row row) {
         return new FlatShortRecipeRow(
                 row.get("r_id", Long.class),
-                row.get("keycloak_id", String.class),
+                row.get("created_by", String.class),
                 row.get("title", String.class),
                 row.get("r_image", String.class)
         );
     }
 
     private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFlux() {
-        return client.sql("""
-                            SELECT 
-                              r.id AS r_id, r.keycloak_id, r.title, r.image AS r_image
-                            FROM recipe r
-                            LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
-                            LEFT JOIN tag t ON t.id = rt.tag_id
-                            LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
-                            LEFT JOIN ingredient i ON i.id = ri.ingredient_id
-                        """)
+
+        return client.sql(GET_RECIPES_SQL)
                 .map((row, meta) -> getFlatShortRecipeRow(row))
                 .all();
     }
 
     private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxByUser(String id) {
-        return client.sql("""
-                            SELECT 
-                              r.id AS r_id, r.keycloak_id, r.title, r.image AS r_image
-                            FROM recipe r
-                            LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
-                            LEFT JOIN tag t ON t.id = rt.tag_id
-                            LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
-                            LEFT JOIN ingredient i ON i.id = ri.ingredient_id
-                            WHERE r.keycloak_id = $1
-                        """)
+        return client.sql(GET_RECIPES_SQL + "WHERE r.created_by = $1")
                 .bind(0, id)
                 .map((row, meta) -> getFlatShortRecipeRow(row))
                 .all();

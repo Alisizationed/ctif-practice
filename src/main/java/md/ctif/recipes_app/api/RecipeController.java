@@ -41,18 +41,14 @@ public class RecipeController {
 
     @GetMapping("/user/{id}")
     public Flux<ShortRecipeDTO> getAllUsersRecipes(@PathVariable String id) {
-
-
         return customService.getAllByUser(id);
     }
 
     @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> saveRecipe(
             @RequestPart("image") Mono<FilePart> filePartMono,
-            @RequestPart("body") Mono<String> requestBodyMono,
-            JwtAuthenticationToken jwtAuthenticationToken
+            @RequestPart("body") Mono<String> requestBodyMono
     ) {
-//        Mono.deferContextual()
         return requestBodyMono
                 .flatMap(json -> parseRecipe(json)
                         .flatMap(recipe -> filePartMono.flatMap(fileStorageService::saveFile)

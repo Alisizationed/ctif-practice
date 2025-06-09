@@ -5,6 +5,7 @@ import md.ctif.recipes_app.DTO.RecipeDTO;
 import md.ctif.recipes_app.entity.Recipe;
 import md.ctif.recipes_app.repository.RecipeRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,12 +14,10 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class RecipeService {
     private final RecipeRepository recipeRepository;
-    private final FileStorageService fileStorageService;
     private final TagService tagService;
     private final IngredientService ingredientService;
 
     public Mono<ResponseEntity<String>> save(RecipeDTO recipeDTO) {
-
         Recipe recipe = new Recipe(recipeDTO);
 
         return recipeRepository.save(recipe)

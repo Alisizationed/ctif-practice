@@ -23,7 +23,7 @@ public class CustomRepository {
     private final DatabaseClient client;
     private static final String GET_RECIPE_SQL = """
                     SELECT 
-                      r.id AS r_id, r.keycloak_id, r.title, r.description, r.image AS r_image, r.contents,
+                      r.id AS r_id, r.created_by, r.title, r.description, r.image AS r_image, r.contents,
                       t.id AS tag_id, t.tag AS tag_name,
                       i.id AS ing_id, i.ingredient AS ing_name, ri.amount AS ing_quantity, ri.measure AS ing_measure
                     FROM recipe r
@@ -49,7 +49,7 @@ public class CustomRepository {
     private FlatRecipeRow getFlatRecipeRow(Row row) {
         return new FlatRecipeRow(
                 row.get("r_id", Long.class),
-                row.get("keycloak_id", String.class),
+                row.get("created_by", String.class),
                 row.get("title", String.class),
                 row.get("description", String.class),
                 row.get("r_image", String.class),

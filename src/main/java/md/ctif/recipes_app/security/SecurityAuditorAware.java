@@ -8,13 +8,11 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import reactor.util.annotation.NonNull;
 
 @Component
 @EnableR2dbcAuditing(auditorAwareRef = "securityAuditorAware")
 public class SecurityAuditorAware implements ReactiveAuditorAware<String> {
     @Override
-    @NonNull
     public Mono<String> getCurrentAuditor() {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
