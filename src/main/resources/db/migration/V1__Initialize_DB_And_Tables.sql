@@ -1,10 +1,17 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE recipe(
    id BIGSERIAL PRIMARY KEY,
    keycloak_id VARCHAR(255),
    title VARCHAR(150) NOT NULL,
    description TEXT NOT NULL,
    image TEXT,
-   contents JSONB NOT NULL
+   contents JSONB NOT NULL,
+   created_at DATE,
+   updated_at DATE,
+   created_by TEXT,
+   updated_by TEXT,
+   embedding vector(1536)
 );
 
 CREATE TABLE tag(

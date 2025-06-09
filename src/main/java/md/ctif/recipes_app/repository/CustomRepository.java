@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import md.ctif.recipes_app.DTO.IngredientDTO;
 import md.ctif.recipes_app.DTO.RecipeDTO;
 import md.ctif.recipes_app.entity.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
@@ -22,6 +21,17 @@ import java.util.Map;
 @AllArgsConstructor
 public class CustomRepository {
     private final DatabaseClient client;
+    private static final String GET_RECIPE_SQL = """
+                    SELECT 
+                      r.id AS r_id, r.keycloak_id, r.title, r.description, r.image AS r_image, r.contents,
+                      t.id AS tag_id, t.tag AS tag_name,
+                      i.id AS ing_id, i.ingredient AS ing_name, ri.amount AS ing_quantity, ri.measure AS ing_measure
+                    FROM recipe r
+                    LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
+                    LEFT JOIN tag t ON t.id = rt.tag_id
+                    LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
+                    LEFT JOIN ingredient i ON i.id = ri.ingredient_id
+                """;
 
     public Mono<RecipeDTO> fetchRecipeDetails(Long recipeId) {
         Flux<FlatRecipeRow> flatRows = getFlatRecipeRowFlux(recipeId);
@@ -30,18 +40,7 @@ public class CustomRepository {
     }
 
     private Flux<FlatRecipeRow> getFlatRecipeRowFlux(Long recipeId) {
-        return client.sql("""
-                            SELECT 
-                              r.id AS r_id, r.keycloak_id, r.title, r.description, r.image AS r_image, r.contents,
-                              t.id AS tag_id, t.tag AS tag_name,
-                              i.id AS ing_id, i.ingredient AS ing_name, ri.amount AS ing_quantity, ri.measure AS ing_measure
-                            FROM recipe r
-                            LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
-                            LEFT JOIN tag t ON t.id = rt.tag_id
-                            LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
-                            LEFT JOIN ingredient i ON i.id = ri.ingredient_id
-                            WHERE r.id = $1
-                        """)
+        return client.sql(GET_RECIPE_SQL + " WHERE r.id = $1")
                 .bind(0, recipeId)
                 .map((row, meta) -> getFlatRecipeRow(row))
                 .all();
@@ -103,17 +102,7 @@ public class CustomRepository {
     }
 
     private Flux<FlatRecipeRow> getFlatRecipeRowFlux() {
-        return client.sql("""
-                            SELECT 
-                              r.id AS r_id, r.keycloak_id, r.title, r.description, r.image AS r_image, r.contents,
-                              t.id AS tag_id, t.tag AS tag_name,
-                              i.id AS ing_id, i.ingredient AS ing_name, ri.amount AS ing_quantity, ri.measure AS ing_measure
-                            FROM recipe r
-                            LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
-                            LEFT JOIN tag t ON t.id = rt.tag_id
-                            LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
-                            LEFT JOIN ingredient i ON i.id = ri.ingredient_id
-                        """)
+        return client.sql(GET_RECIPE_SQL)
                 .map((row, meta) -> getFlatRecipeRow(row))
                 .all();
     }

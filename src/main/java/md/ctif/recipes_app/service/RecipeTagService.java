@@ -44,4 +44,8 @@ public class RecipeTagService {
                         )
                 );
     }
+
+    public Mono<Void> deleteByRecipeId(Long recipeId) {
+        return recipeTagRepository.deleteByRecipeId(recipeId);
+    }
 }

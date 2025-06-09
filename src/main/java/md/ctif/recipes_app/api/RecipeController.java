@@ -13,9 +13,13 @@ import md.ctif.recipes_app.service.RecipeService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.security.Principal;
 
 @AllArgsConstructor
 @RestController
@@ -37,14 +41,18 @@ public class RecipeController {
 
     @GetMapping("/user/{id}")
     public Flux<ShortRecipeDTO> getAllUsersRecipes(@PathVariable String id) {
+
+
         return customService.getAllByUser(id);
     }
 
     @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> saveRecipe(
             @RequestPart("image") Mono<FilePart> filePartMono,
-            @RequestPart("body") Mono<String> requestBodyMono
+            @RequestPart("body") Mono<String> requestBodyMono,
+            JwtAuthenticationToken jwtAuthenticationToken
     ) {
+//        Mono.deferContextual()
         return requestBodyMono
                 .flatMap(json -> parseRecipe(json)
                         .flatMap(recipe -> filePartMono.flatMap(fileStorageService::saveFile)

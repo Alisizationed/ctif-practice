@@ -28,18 +28,19 @@ public class IngredientService {
     }
 
     public Mono<Void> update(Long recipeId, Flux<IngredientDTO> ingredientDTOs) {
-        return ingredientDTOs.flatMap(ingredientDTO ->
+        return recipeIngredientService.deleteByRecipeId(recipeId)
+                .thenMany(ingredientDTOs.flatMap(ingredientDTO ->
                         ingredientRepository.findByIngredient(ingredientDTO.ingredient())
                                 .switchIfEmpty(ingredientRepository.save(
                                         Ingredient.builder()
                                                 .ingredient(ingredientDTO.ingredient())
                                                 .build()
                                 )).flatMap(savedIngredient ->
-                                        recipeIngredientService.saveOrUpdate(
+                                        recipeIngredientService.saveByDTOandId(
                                                 ingredientDTO, savedIngredient.getId(), recipeId
                                         )
                                 )
-                )
+                ))
                 .then();
     }
 

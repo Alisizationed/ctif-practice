@@ -35,4 +35,8 @@ public class RecipeIngredientService {
                         ))
                 ));
     }
+
+    public Mono<Void> deleteByRecipeId(Long recipeId) {
+        return recipeIngredientRepository.deleteByRecipeId(recipeId);
+    }
 }

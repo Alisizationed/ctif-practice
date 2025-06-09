@@ -38,15 +38,15 @@ public class TagService {
     }
 
     public Mono<Void> update(Flux<Tag> tags, Long recipeId) {
-        return tags.flatMap(tag ->
+        return recipeTagService.deleteByRecipeId(recipeId)
+                .thenMany(tags.flatMap(tag ->
                         tagRepository.findByTag(tag.getTag())
-                                .switchIfEmpty(
-                                        tagRepository.save(tag).flatMap(savedTag ->
-                                                recipeTagService.saveById(savedTag.getId(), recipeId)
-                                                        .thenReturn(savedTag)
-                                        )
+                                .switchIfEmpty(tagRepository.save(tag))
+                                .flatMap(savedTag ->
+                                        recipeTagService.saveById(savedTag.getId(), recipeId)
                                 )
-                )
+                ))
                 .then();
     }
+
 }

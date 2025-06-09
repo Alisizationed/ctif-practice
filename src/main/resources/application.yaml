@@ -11,12 +11,12 @@ spring:
       max-part-size: 5MB
 
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/recipe_app_db
+    url: r2dbc:postgresql://localhost:5432/recipe_db
     username: postgres
     password: postgres
 
   flyway:
-    url: jdbc:postgresql://localhost:5432/recipe_app_db
+    url: jdbc:postgresql://localhost:5432/recipe_db
     user: postgres
     password: postgres
     locations: classpath:db/migration

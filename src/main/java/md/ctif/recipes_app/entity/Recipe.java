@@ -8,10 +8,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import md.ctif.recipes_app.DTO.RecipeDTO;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
+import org.springframework.data.annotation.*;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -27,10 +28,19 @@ public class Recipe {
     private String description;
     private String image;
     private JsonNode contents;
+//    @CreatedDate
+//    private LocalDateTime createdAt;
+//    @CreatedBy
+//    private String createdBy;
+//    @LastModifiedDate
+//    private LocalDateTime updatedAt;
+//    @LastModifiedBy
+//    private String updatedBy;
     @Transient
     private List<Tag> tags;
     @Transient
     private List<Ingredient> ingredients;
+
     public Recipe(RecipeDTO recipeDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
         this.keycloakId = recipeDTO.keycloakId();
@@ -43,11 +53,12 @@ public class Recipe {
         }
         this.image = recipeDTO.image();
     }
+
     public void update(RecipeDTO recipeDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
         this.title = recipeDTO.title();
         this.description = recipeDTO.description();
-        if(recipeDTO.image() != null && !recipeDTO.image().isBlank()) {
+        if (recipeDTO.image() != null && !recipeDTO.image().isBlank()) {
             this.image = recipeDTO.image();
         }
         try {

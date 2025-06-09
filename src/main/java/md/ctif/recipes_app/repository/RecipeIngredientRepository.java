@@ -9,4 +9,6 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface RecipeIngredientRepository extends ReactiveCrudRepository<RecipeIngredient, Long> {
     Mono<RecipeIngredient> findByIngredientIdAndRecipeId(Long ingredientId, Long recipeId);
+
+    Mono<Void> deleteByRecipeId(Long recipeId);
 }
