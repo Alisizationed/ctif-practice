@@ -3,6 +3,7 @@ package md.ctif.recipes_app.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pgvector.PGvector;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,10 +37,7 @@ public class Recipe {
     private LocalDateTime updatedAt;
     @LastModifiedBy
     private String updatedBy;
-    @Transient
-    private List<Tag> tags;
-    @Transient
-    private List<Ingredient> ingredients;
+//    private PGvector embedding;
     public Recipe(RecipeDTO recipeDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
         this.createdBy = recipeDTO.keycloakId();

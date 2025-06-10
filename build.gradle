@@ -38,6 +38,7 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql:42.7.2'
 	runtimeOnly 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
 	implementation 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
+	implementation 'com.pgvector:pgvector:0.1.6'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
@@ -46,7 +47,6 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 }
-
 
 jib {
 	from {

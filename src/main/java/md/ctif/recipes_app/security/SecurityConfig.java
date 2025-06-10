@@ -42,8 +42,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http
-                .authorizeExchange(exchanges -> exchanges
+        http.authorizeExchange(exchanges -> exchanges
                                 .pathMatchers(HttpMethod.GET, "/api/recipe/images/v2/**").permitAll()
                                 .pathMatchers("/api", "/swagger-ui/**", "/v3/api-docs.yaml/swagger-config", "v3/api-docs.yaml").permitAll()
 //                                .pathMatchers("/**").authenticated()

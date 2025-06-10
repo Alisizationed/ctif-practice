@@ -21,7 +21,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class CustomRepository {
     private final DatabaseClient client;
-    private static final String GET_RECIPE_SQL = """
+    private static final String SELECT_RECIPE_SQL = """
                     SELECT 
                       r.id AS r_id, r.created_by, r.title, r.description, r.image AS r_image, r.contents,
                       t.id AS tag_id, t.tag AS tag_name,
@@ -40,7 +40,7 @@ public class CustomRepository {
     }
 
     private Flux<FlatRecipeRow> getFlatRecipeRowFlux(Long recipeId) {
-        return client.sql(GET_RECIPE_SQL + " WHERE r.id = $1")
+        return client.sql(SELECT_RECIPE_SQL + " WHERE r.id = $1")
                 .bind(0, recipeId)
                 .map((row, meta) -> getFlatRecipeRow(row))
                 .all();
@@ -102,7 +102,7 @@ public class CustomRepository {
     }
 
     private Flux<FlatRecipeRow> getFlatRecipeRowFlux() {
-        return client.sql(GET_RECIPE_SQL)
+        return client.sql(SELECT_RECIPE_SQL)
                 .map((row, meta) -> getFlatRecipeRow(row))
                 .all();
     }

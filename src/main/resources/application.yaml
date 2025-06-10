@@ -14,6 +14,13 @@ spring:
     url: r2dbc:postgresql://localhost:5432/recipe_db
     username: postgres
     password: postgres
+  ai:
+    vectorstore:
+      pgvector:
+      index-type: HNSW
+      distance-type: COSINE_DISTANCE
+      dimensions: 1536
+      max-document-batch-size: 10000
 
   flyway:
     url: jdbc:postgresql://localhost:5432/recipe_db

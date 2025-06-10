@@ -13,13 +13,9 @@ import md.ctif.recipes_app.service.RecipeService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.security.Principal;
 
 @AllArgsConstructor
 @RestController
@@ -32,6 +28,14 @@ public class RecipeController {
     @GetMapping("/{id}")
     public Mono<RecipeDTO> getRecipe(@PathVariable Long id) {
         return customService.getById(id);
+    }
+
+    @GetMapping("/recommended/{id}/{limit}")
+    public Flux<RecipeDTO> getRecommendedRecipes(
+            @PathVariable Long id,
+            @PathVariable Long limit
+    ) {
+        return customService.getRecommendedRecipes(id, limit);
     }
 
     @GetMapping("/")
@@ -69,7 +73,7 @@ public class RecipeController {
     @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<ResponseEntity<String>> updateRecipe(
             @PathVariable Long id,
-            @RequestPart(name="image", required = false) FilePart filePart,
+            @RequestPart(name = "image", required = false) FilePart filePart,
             @Parameter(
                     required = true,
                     schema = @Schema(implementation = RecipeDTO.class)

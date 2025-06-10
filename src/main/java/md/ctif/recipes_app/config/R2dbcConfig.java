@@ -3,7 +3,9 @@ package md.ctif.recipes_app.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pgvector.PGvector;
 import io.r2dbc.postgresql.codec.Json;
+import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +13,10 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.r2dbc.convert.R2dbcCustomConversions;
+import org.springframework.data.r2dbc.dialect.PostgresDialect;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -24,9 +28,13 @@ public class R2dbcConfig {
     @Bean
     public R2dbcCustomConversions r2dbcCustomConversions() {
         List<Object> converters = new ArrayList<>();
+
         converters.add(new JsonNodeReadConverter(objectMapper));
         converters.add(new JsonNodeWriteConverter(objectMapper));
-        return new R2dbcCustomConversions(R2dbcCustomConversions.StoreConversions.NONE, converters);
+        converters.add(new PGvectorWriteConverter());
+        converters.add(new PGvectorReadConverter());
+
+        return R2dbcCustomConversions.of(PostgresDialect.INSTANCE, converters);
     }
 
     @ReadingConverter
@@ -61,6 +69,32 @@ public class R2dbcConfig {
                 return Json.of(objectMapper.writeValueAsString(source));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to convert JsonNode to JSONB", e);
+            }
+        }
+    }
+
+    @WritingConverter
+    public static class PGvectorWriteConverter implements Converter<PGvector, String> {
+        @Override
+        public String convert(PGvector source) {
+            if (source == null) {
+                return null;
+            }
+            return source.toString();
+        }
+    }
+
+    @ReadingConverter
+    public static class PGvectorReadConverter implements Converter<String, PGvector> {
+        @Override
+        public PGvector convert(String source) {
+            if (source == null || source.isEmpty()) {
+                return null;
+            }
+            try {
+                return new PGvector(source);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to parse PGvector from string: " + source, e);
             }
         }
     }
