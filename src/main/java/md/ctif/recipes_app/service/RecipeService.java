@@ -20,14 +20,12 @@ public class RecipeService {
     public Mono<ResponseEntity<String>> save(RecipeDTO recipeDTO) {
         Recipe recipe = new Recipe(recipeDTO);
 
-        return embeddingService.generateEmbedding(recipe.toString())
-                .flatMap(embedding -> recipeRepository.save(recipe).flatMap(savedRecipe ->
-                                Mono.when(
-                                        saveTags(recipeDTO, savedRecipe),
-                                        saveIngredients(recipeDTO, savedRecipe),
-                                        embeddingService.saveEmbedding(recipe.getId(), recipe.toString())
-                                ).thenReturn(ResponseEntity.ok("Recipe saved with ID: " + savedRecipe.getId()))
-                        )
+        return recipeRepository.save(recipe).flatMap(savedRecipe ->
+                        Mono.when(
+                                saveTags(recipeDTO, savedRecipe),
+                                saveIngredients(recipeDTO, savedRecipe),
+                                embeddingService.saveEmbedding(recipe.getId(), recipe.toString())
+                        ).thenReturn(ResponseEntity.ok("Recipe saved with ID: " + savedRecipe.getId()))
                 )
                 .onErrorResume(e ->
                         Mono.just(ResponseEntity.internalServerError().body("Error: " + e.getMessage()))
