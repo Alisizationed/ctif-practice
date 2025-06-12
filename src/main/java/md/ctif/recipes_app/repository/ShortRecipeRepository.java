@@ -14,20 +14,23 @@ import java.util.List;
 @AllArgsConstructor
 @Repository
 public class ShortRecipeRepository {
-    private final DatabaseClient client;
     private final static String GET_RECIPES_SQL = """
-                    SELECT 
-                      r.id AS r_id, r.created_by, r.title, r.image AS r_image
-                    FROM recipe r
-                    LEFT JOIN recipe_tag rt ON rt.recipe_id = r.id
-                    LEFT JOIN tag t ON t.id = rt.tag_id
-                    LEFT JOIN recipe_ingredient ri ON ri.recipe_id = r.id
-                    LEFT JOIN ingredient i ON i.id = ri.ingredient_id
-                """;;
+                SELECT 
+                  r.id AS r_id, r.created_by, r.title, r.image AS r_image
+                FROM recipe r
+            """;
+    private final DatabaseClient client;
 
     public Flux<ShortRecipeDTO> getAllRecipesShort() {
         Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFlux();
+        return flatRows
+                .groupBy(FlatShortRecipeRow::getRecipeId)
+                .flatMap(group -> group.collectList()
+                        .mapNotNull(this::getShortRecipeDTO));
+    }
 
+    public Flux<ShortRecipeDTO> getAllRecipesShortPageable(Long offset, Long limit) {
+        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxPageable(limit,limit);
         return flatRows
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()
@@ -36,9 +39,7 @@ public class ShortRecipeRepository {
 
     private ShortRecipeDTO getShortRecipeDTO(List<FlatShortRecipeRow> rows) {
         if (rows.isEmpty()) return null;
-
         FlatShortRecipeRow first = rows.getFirst();
-
         return new ShortRecipeDTO(
                 first.getRecipeId(),
                 first.getKeycloakId(),
@@ -57,8 +58,15 @@ public class ShortRecipeRepository {
     }
 
     private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFlux() {
-
         return client.sql(GET_RECIPES_SQL)
+                .map((row, meta) -> getFlatShortRecipeRow(row))
+                .all();
+    }
+
+    private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxPageable(Long offset, Long limit) {
+        return client.sql(GET_RECIPES_SQL + "LIMIT :limit OFFSET :offset")
+                .bind("limit", limit)
+                .bind("offset", offset)
                 .map((row, meta) -> getFlatShortRecipeRow(row))
                 .all();
     }
@@ -72,7 +80,6 @@ public class ShortRecipeRepository {
 
     public Flux<ShortRecipeDTO> getAllRecipesShortByUser(String id) {
         Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxByUser(id);
-
         return flatRows
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()

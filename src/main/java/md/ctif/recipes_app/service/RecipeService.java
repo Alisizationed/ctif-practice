@@ -92,4 +92,8 @@ public class RecipeService {
                 Flux.fromIterable(recipeDTO.ingredients())
         ).then();
     }
+
+    public Mono<Long> getAllRecipesCount() {
+        return recipeRepository.count();
+    }
 }

@@ -7,9 +7,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import md.ctif.recipes_app.DTO.RecipeDTO;
 import md.ctif.recipes_app.DTO.ShortRecipeDTO;
+import md.ctif.recipes_app.entity.Recipe;
 import md.ctif.recipes_app.service.CustomService;
 import md.ctif.recipes_app.service.FileStorageService;
 import md.ctif.recipes_app.service.RecipeService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
@@ -41,6 +45,19 @@ public class RecipeController {
     @GetMapping("/")
     public Flux<ShortRecipeDTO> getAllRecipes() {
         return customService.getAll();
+    }
+
+    @GetMapping("/pageable")
+    public Flux<ShortRecipeDTO> getAllRecipesPageable(
+            @RequestParam Long page,
+            @RequestParam Long size
+    ) {
+        return customService.getAllPageable(page,size);
+    }
+
+    @GetMapping("/count")
+    public Mono<Long> getAllRecipesCount() {
+        return recipeService.getAllRecipesCount();
     }
 
     @GetMapping("/user/{id}")

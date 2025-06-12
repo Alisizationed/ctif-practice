@@ -25,6 +25,10 @@ public class CustomService {
         return shortRecipeRepository.getAllRecipesShort();
     }
 
+    public Flux<ShortRecipeDTO> getAllPageable(Long offset, Long limit) {
+        return shortRecipeRepository.getAllRecipesShortPageable(offset, limit);
+    }
+
     public Flux<ShortRecipeDTO> getAllByUser(String id) {
         return shortRecipeRepository.getAllRecipesShortByUser(id);
     }

@@ -1,9 +1,9 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.4.5'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.4.5'
+    id 'io.spring.dependency-management' version '1.1.7'
 
-	id 'com.google.cloud.tools.jib' version '3.4.0'
+    id 'com.google.cloud.tools.jib' version '3.4.0'
 
 }
 
@@ -11,74 +11,73 @@ group = 'md.ctif'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
-	implementation 'org.flywaydb:flyway-core:11.8.2'
-	runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.8.2'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'org.postgresql:postgresql:42.7.2'
-	runtimeOnly 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
-	implementation 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
-	implementation 'com.pgvector:pgvector:0.1.6'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
+    implementation 'org.flywaydb:flyway-core:11.8.2'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.8.2'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'org.postgresql:postgresql:42.7.2'
+    runtimeOnly 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
+    implementation 'org.postgresql:r2dbc-postgresql:1.0.2.RELEASE'
+    implementation 'com.pgvector:pgvector:0.1.6'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 }
 
 jib {
-	from {
-		// Base image for your application. Recommended for Spring Boot:
-		// eclipse-temurin:21-jre-jammy (or similar based on your Java version)
-		// or a distroless image for smaller size, e.g., gcr.io/distroless/java17-debian11
-		image = 'eclipse-temurin:21-jre-jammy' // Make sure this matches your Java 21 toolchain
-	}
-	to {
-		// The image name and tag. This will be pushed to your Docker daemon or a registry.
-		image = "recipe-microservice:${version}"
-		// Example for local Docker daemon:
-		// image = "md-ctif/accounts-microservice:${version}"
-		// Example for AWS ECR:
-		// image = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/md-ctif/accounts-microservice:${version}"
-	}
-	container {
-		// Exposed port for your Spring Boot application (default for webflux is 8080)
-		ports = ['8080']
-		// JVM arguments, e.g., for memory settings
-		jvmFlags = ['-Xms512m', '-Xmx1024m']
-		// Environment variables
-		environment = [
-				'SPRING_PROFILES_ACTIVE': 'prod'
-		]
-		// User/group to run the container as (for security, non-root)
-		user = "1000:1000" // Example for non-root user
-	}
+    from {
+        // Base image for your application. Recommended for Spring Boot:
+        // eclipse-temurin:21-jre-jammy (or similar based on your Java version)
+        // or a distroless image for smaller size, e.g., gcr.io/distroless/java17-debian11
+        image = 'eclipse-temurin:21-jre-jammy' // Make sure this matches your Java 21 toolchain
+    }
+    to {
+        // The image name and tag. This will be pushed to your Docker daemon or a registry.
+        image = "recipe-microservice:${version}"
+        // Example for local Docker daemon:
+        // image = "md-ctif/accounts-microservice:${version}"
+        // Example for AWS ECR:
+        // image = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/md-ctif/accounts-microservice:${version}"
+    }
+    container {
+        // Exposed port for your Spring Boot application (default for webflux is 8080)
+        ports = ['8080']
+        // JVM arguments, e.g., for memory settings
+        jvmFlags = ['-Xms512m', '-Xmx1024m']
+        // Environment variables
+        environment = [
+                'SPRING_PROFILES_ACTIVE': 'prod'
+        ]
+        // User/group to run the container as (for security, non-root)
+        user = "1000:1000" // Example for non-root user
+    }
 }
 
 
-
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
