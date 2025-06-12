@@ -37,7 +37,6 @@ public class Recipe {
     private LocalDateTime updatedAt;
     @LastModifiedBy
     private String updatedBy;
-//    private PGvector embedding;
     public Recipe(RecipeDTO recipeDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
         this.createdBy = recipeDTO.keycloakId();

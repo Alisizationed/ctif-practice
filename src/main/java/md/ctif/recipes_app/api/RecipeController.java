@@ -7,11 +7,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import md.ctif.recipes_app.DTO.RecipeDTO;
 import md.ctif.recipes_app.DTO.ShortRecipeDTO;
-import md.ctif.recipes_app.entity.Recipe;
+import md.ctif.recipes_app.repository.RecipeRepository;
 import md.ctif.recipes_app.service.CustomService;
 import md.ctif.recipes_app.service.FileStorageService;
 import md.ctif.recipes_app.service.RecipeService;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -53,6 +53,14 @@ public class RecipeController {
             @RequestParam Long size
     ) {
         return customService.getAllPageable(page,size);
+    }
+    @GetMapping("/pageable/v2")
+    public Mono<PageImpl<?>> getAllRecipesPageableV2(
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        Pageable pageable =  PageRequest.of(page, size);
+        return recipeService.getAllRecipesPage(pageable);
     }
 
     @GetMapping("/count")

@@ -8,8 +8,8 @@ CREATE TABLE recipe
     description TEXT         NOT NULL,
     image       TEXT,
     contents    JSONB        NOT NULL,
-    created_at  DATE,
-    updated_at  DATE,
+    created_at  timestamp,
+    updated_at  timestamp,
     created_by  VARCHAR(255),
     updated_by  VARCHAR(255)
 );

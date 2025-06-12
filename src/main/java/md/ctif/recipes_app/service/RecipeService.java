@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import md.ctif.recipes_app.DTO.RecipeDTO;
 import md.ctif.recipes_app.entity.Recipe;
 import md.ctif.recipes_app.repository.RecipeRepository;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -95,5 +97,12 @@ public class RecipeService {
 
     public Mono<Long> getAllRecipesCount() {
         return recipeRepository.count();
+    }
+
+    public Mono<PageImpl<?>> getAllRecipesPage(Pageable pageable) {
+        return recipeRepository.findAllBy(pageable)
+                .collectList()
+                .zipWith(recipeRepository.count())
+                .map(p -> new PageImpl<>(p.getT1(), pageable, p.getT2()));
     }
 }
