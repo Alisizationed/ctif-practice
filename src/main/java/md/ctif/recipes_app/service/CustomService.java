@@ -42,4 +42,9 @@ public class CustomService {
         return accountsService.getFavouriteRecipes(id)
                 .flatMap(recipeId -> shortRecipeRepository.getRecipeShortById(recipeId));
     }
+
+    public Flux<ShortRecipeDTO> getFavouriteRecipesPageable(String id, Integer offset, Integer limit) {
+        return accountsService.getFavouriteRecipesPageable(id,offset,limit)
+                .flatMap(recipeId -> shortRecipeRepository.getRecipeShortById(recipeId));
+    }
 }

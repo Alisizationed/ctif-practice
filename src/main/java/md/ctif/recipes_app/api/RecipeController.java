@@ -125,4 +125,13 @@ public class RecipeController {
     public Flux<ShortRecipeDTO> getFavouriteRecipes(@PathVariable String id) {
         return customService.getFavouriteRecipes(id);
     }
+
+    @GetMapping("/favourites/v2/{id}")
+    public Flux<ShortRecipeDTO> getFavouriteRecipesPageable(
+            @PathVariable String id,
+            @RequestParam Integer offset,
+            @RequestParam Integer limit
+            ) {
+        return customService.getFavouriteRecipesPageable(id, offset, limit);
+    }
 }
