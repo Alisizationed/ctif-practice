@@ -65,20 +65,21 @@ public class RecipeService {
                 .switchIfEmpty(Mono.error(new RuntimeException("Recipe not found with ID: " + id)))
                 .flatMap(existingRecipe -> {
                     existingRecipe.update(recipeDTO.withImage(imagePath));
-                    return updateIngredientsTagsAndRecipe(recipeDTO, existingRecipe);
-                })
-                .onErrorResume(Exception.class, e ->
-                        Mono.just(ResponseEntity.internalServerError().body("An unexpected error occurred: " + e.getMessage()))
-                );
+                    return updateIngredientsTagsAndRecipe(recipeDTO, existingRecipe)
+                            .then(Mono.just(ResponseEntity.ok("Recipe updated")));
+                });
     }
 
-    private Mono<ResponseEntity<String>> updateIngredientsTagsAndRecipe(RecipeDTO recipeDTO, Recipe existingRecipe) {
+    private Mono<Void> updateIngredientsTagsAndRecipe(RecipeDTO recipeDTO, Recipe existingRecipe) {
         return Mono.when(
                         updateTags(recipeDTO, existingRecipe),
                         updateIngredients(recipeDTO, existingRecipe)
                 )
                 .then(recipeRepository.save(existingRecipe))
-                .map(savedRecipe -> ResponseEntity.ok("Recipe updated with ID: " + savedRecipe.getId()));
+                .flatMap(savedRecipe ->
+                        embeddingService.updateEmbedding(existingRecipe.getId(), savedRecipe.toString())
+                )
+                .then();
     }
 
     private Mono<Void> updateTags(RecipeDTO recipeDTO, Recipe existingRecipe) {

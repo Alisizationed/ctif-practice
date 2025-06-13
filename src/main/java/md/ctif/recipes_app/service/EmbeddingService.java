@@ -37,5 +37,9 @@ public class EmbeddingService {
     public Mono<Void> saveEmbedding(Long recipeId, String inputText) {
         return embeddingRepository.saveEmbedding(recipeId, generateFloatEmbedding(inputText));
     }
+
+    public Mono<Void> updateEmbedding(Long recipeId, String inputText) {
+        return embeddingRepository.updateEmbedding(recipeId, generateFloatEmbedding(inputText));
+    }
 }
 

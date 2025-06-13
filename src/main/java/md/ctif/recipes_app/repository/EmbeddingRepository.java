@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 @Repository
 public class EmbeddingRepository {
     private static final String UPDATE_EMBEDDINGS_SQL = """
-            UPDATE embeddings SET embedding = $1 WHERE recipe_id = $2;
+            UPDATE embeddings SET embedding = ($1::vector) WHERE recipe_id = $2;
             """;
     private static final String INSERT_EMBEDDINGS_SQL = """
             INSERT INTO embeddings (recipe_id, embedding) VALUES ($1, ($2::vector))
