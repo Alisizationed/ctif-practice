@@ -120,4 +120,9 @@ public class RecipeController {
     public Mono<Void> deleteRecipe(@PathVariable Long id) {
         return recipeService.deleteById(id);
     }
+
+    @GetMapping("/favourites/{username}")
+    public Flux<ShortRecipeDTO> getFavouriteRecipes(@PathVariable String username) {
+        return customService.getFavouriteRecipes(username);
+    }
 }

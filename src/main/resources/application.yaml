@@ -77,3 +77,7 @@ cors:
   allowed-headers:
     "*"
   allow-credentials: true
+
+accounts:
+  url: https://localhost:8463
+  favourites-endpoint: "/api/users/favourite/{username}"

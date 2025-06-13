@@ -16,6 +16,7 @@ public class CustomService {
     private final RecommendationsCustomRepository recommendationsCustomRepository;
     private CustomRepository customRepository;
     private ShortRecipeRepository shortRecipeRepository;
+    private AccountsService accountsService;
 
     public Mono<RecipeDTO> getById(Long id) {
         return customRepository.fetchRecipeDetails(id);
@@ -35,5 +36,10 @@ public class CustomService {
 
     public Flux<RecipeDTO> getRecommendedRecipes(Long id, Long limit) {
         return recommendationsCustomRepository.findSimilarRecipes(id,limit);
+    }
+
+    public Flux<ShortRecipeDTO> getFavouriteRecipes(String username) {
+        return accountsService.getFavouriteRecipes(username)
+                .flatMap(id -> shortRecipeRepository.getRecipeShortById(id));
     }
 }

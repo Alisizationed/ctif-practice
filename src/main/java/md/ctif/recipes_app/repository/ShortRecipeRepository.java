@@ -8,6 +8,7 @@ import md.ctif.recipes_app.DTO.ShortRecipeDTO;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class ShortRecipeRepository {
     }
 
     public Flux<ShortRecipeDTO> getAllRecipesShortPageable(Long offset, Long limit) {
-        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxPageable(limit,limit);
+        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxPageable(limit, limit);
         return flatRows
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()
@@ -84,6 +85,27 @@ public class ShortRecipeRepository {
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()
                         .mapNotNull(this::getShortRecipeDTO));
+    }
+
+    public Mono<ShortRecipeDTO> getRecipeShortById(Long id) {
+        Mono<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxById(id);
+        return getOneShortRecipeDTO(flatRows);
+    }
+
+    private Mono<ShortRecipeDTO> getOneShortRecipeDTO(Mono<FlatShortRecipeRow> flatRows) {
+        return flatRows.map(first -> new ShortRecipeDTO(
+                first.getRecipeId(),
+                first.getKeycloakId(),
+                first.getImageUrl(),
+                first.getTitle()
+        ));
+    }
+
+    private Mono<FlatShortRecipeRow> getFlatShortRecipeRowFluxById(Long id) {
+        return client.sql(GET_RECIPES_SQL + "WHERE r.id = $1")
+                .bind(0, id)
+                .map((row, meta) -> getFlatShortRecipeRow(row))
+                .first();
     }
 
     @AllArgsConstructor
