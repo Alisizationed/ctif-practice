@@ -17,13 +17,13 @@ public class AccountsService {
     @Autowired
     private WebClient webClient;
 
-    public Flux<Long> getFavouriteRecipes(String username) {
+    public Flux<Long> getFavouriteRecipes(String id) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .cast(JwtAuthenticationToken.class)
                 .map(jwtAuth -> jwtAuth.getToken().getTokenValue())
                 .flatMapMany(token -> webClient.get()
-                        .uri(favouritesEndpoint, username)
+                        .uri(favouritesEndpoint, id)
                         .headers(headers -> headers.setBearerAuth(token))
                         .retrieve()
                         .bodyToFlux(Long.class)

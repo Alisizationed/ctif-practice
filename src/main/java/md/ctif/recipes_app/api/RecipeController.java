@@ -121,8 +121,8 @@ public class RecipeController {
         return recipeService.deleteById(id);
     }
 
-    @GetMapping("/favourites/{username}")
-    public Flux<ShortRecipeDTO> getFavouriteRecipes(@PathVariable String username) {
-        return customService.getFavouriteRecipes(username);
+    @GetMapping("/favourites/{id}")
+    public Flux<ShortRecipeDTO> getFavouriteRecipes(@PathVariable String id) {
+        return customService.getFavouriteRecipes(id);
     }
 }

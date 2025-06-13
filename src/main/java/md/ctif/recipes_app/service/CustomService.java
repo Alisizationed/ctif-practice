@@ -38,8 +38,8 @@ public class CustomService {
         return recommendationsCustomRepository.findSimilarRecipes(id,limit);
     }
 
-    public Flux<ShortRecipeDTO> getFavouriteRecipes(String username) {
-        return accountsService.getFavouriteRecipes(username)
-                .flatMap(id -> shortRecipeRepository.getRecipeShortById(id));
+    public Flux<ShortRecipeDTO> getFavouriteRecipes(String id) {
+        return accountsService.getFavouriteRecipes(id)
+                .flatMap(recipeId -> shortRecipeRepository.getRecipeShortById(recipeId));
     }
 }
