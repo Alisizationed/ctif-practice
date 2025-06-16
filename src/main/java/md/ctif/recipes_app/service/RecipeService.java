@@ -106,4 +106,8 @@ public class RecipeService {
                 .zipWith(recipeRepository.count())
                 .map(p -> new PageImpl<>(p.getT1(), pageable, p.getT2()));
     }
+
+    public Mono<Long> getAllUserRecipesCount(String createdBy) {
+        return recipeRepository.findAllByCreatedBy(createdBy).log().count();
+    }
 }

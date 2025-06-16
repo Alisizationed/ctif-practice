@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import md.ctif.recipes_app.DTO.RecipeDTO;
 import md.ctif.recipes_app.DTO.ShortRecipeDTO;
-import md.ctif.recipes_app.repository.RecipeRepository;
 import md.ctif.recipes_app.service.CustomService;
 import md.ctif.recipes_app.service.FileStorageService;
 import md.ctif.recipes_app.service.RecipeService;
@@ -52,14 +51,15 @@ public class RecipeController {
             @RequestParam Long page,
             @RequestParam Long size
     ) {
-        return customService.getAllPageable(page,size);
+        return customService.getAllPageable(page, size);
     }
+
     @GetMapping("/pageable/v2")
     public Mono<PageImpl<?>> getAllRecipesPageableV2(
             @RequestParam int page,
             @RequestParam int size
     ) {
-        Pageable pageable =  PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size);
         return recipeService.getAllRecipesPage(pageable);
     }
 
@@ -71,6 +71,20 @@ public class RecipeController {
     @GetMapping("/user/{id}")
     public Flux<ShortRecipeDTO> getAllUsersRecipes(@PathVariable String id) {
         return customService.getAllByUser(id);
+    }
+
+    @GetMapping("/user/{id}/count")
+    public Mono<Long> getAllUserRecipesCount(@PathVariable String id) {
+        return recipeService.getAllUserRecipesCount(id);
+    }
+
+    @GetMapping("/user/v2/{id}")
+    public Flux<ShortRecipeDTO> getAllUsersRecipesPageable(
+            @PathVariable String id,
+            @RequestParam Long offset,
+            @RequestParam Long limit
+    ) {
+        return customService.getAllByUserPageable(id, offset, limit);
     }
 
     @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -131,7 +145,7 @@ public class RecipeController {
             @PathVariable String id,
             @RequestParam Integer offset,
             @RequestParam Integer limit
-            ) {
+    ) {
         return customService.getFavouriteRecipesPageable(id, offset, limit);
     }
 }

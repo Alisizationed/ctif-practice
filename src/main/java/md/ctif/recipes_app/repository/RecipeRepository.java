@@ -11,5 +11,6 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface RecipeRepository extends ReactiveCrudRepository<Recipe, Long> {
     Mono<Recipe> findRecipeByTitleAndDescriptionAndContentsAndImage(String title, String description, JsonNode contents, String image);
-    Flux<Object> findAllBy(Pageable pageable);
+    Flux<Recipe> findAllBy(Pageable pageable);
+    Flux<Recipe> findAllByCreatedBy(String createdBy);
 }

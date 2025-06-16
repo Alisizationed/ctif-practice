@@ -32,6 +32,10 @@ public class CustomService {
         return shortRecipeRepository.getAllRecipesShortByUser(id);
     }
 
+    public Flux<ShortRecipeDTO> getAllByUserPageable(String id,Long offset, Long limit) {
+        return shortRecipeRepository.getAllRecipesShortByUserPageable(id, offset, limit);
+    }
+
     public Flux<ShortRecipeDTO> getRecommendedRecipes(Long id, Long limit) {
         return shortRecipeRepository.findSimilarRecipes(id,limit);
     }

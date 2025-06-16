@@ -92,8 +92,25 @@ public class ShortRecipeRepository {
                 .all();
     }
 
+    private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxByUserPageable(String id, Long offset, Long limit) {
+        return client.sql(GET_RECIPES_SQL + "WHERE r.created_by = $1 LIMIT $2 OFFSET $3")
+                .bind(0, id)
+                .bind(1, limit)
+                .bind(2, offset)
+                .map((row, meta) -> getFlatShortRecipeRow(row))
+                .all();
+    }
+
     public Flux<ShortRecipeDTO> getAllRecipesShortByUser(String id) {
         Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxByUser(id);
+        return flatRows
+                .groupBy(FlatShortRecipeRow::getRecipeId)
+                .flatMap(group -> group.collectList()
+                        .mapNotNull(this::getShortRecipeDTO));
+    }
+
+    public Flux<ShortRecipeDTO> getAllRecipesShortByUserPageable(String id, Long offset, Long limit) {
+        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxByUserPageable(id,offset,limit);
         return flatRows
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()
