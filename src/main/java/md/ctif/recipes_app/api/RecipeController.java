@@ -35,7 +35,7 @@ public class RecipeController {
     }
 
     @GetMapping("/recommended/{id}/{limit}")
-    public Flux<RecipeDTO> getRecommendedRecipes(
+    public Flux<ShortRecipeDTO> getRecommendedRecipes(
             @PathVariable Long id,
             @PathVariable Long limit
     ) {

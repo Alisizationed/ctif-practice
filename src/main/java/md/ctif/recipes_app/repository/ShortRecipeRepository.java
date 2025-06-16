@@ -5,13 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import md.ctif.recipes_app.DTO.ShortRecipeDTO;
-import org.reactivestreams.Publisher;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 
 @AllArgsConstructor
 @Repository
@@ -20,6 +20,18 @@ public class ShortRecipeRepository {
                 SELECT 
                   r.id AS r_id, r.created_by, r.title, r.image AS r_image
                 FROM recipe r
+            """;
+    private static final String GET_RECIPE_EMBEDDING_SQL = """
+                SELECT
+                  r.id AS r_id, r.created_by, r.title, r.image AS r_image,
+                  e.embedding
+                FROM recipe r
+                LEFT JOIN embeddings e ON r.id = e.recipe_id
+            """;
+    private static final String SELECT_EMBEDDING_SQL = """
+            SELECT embedding::float4[] AS embedding
+            FROM embeddings
+            WHERE recipe_id = :recipeId
             """;
     private final DatabaseClient client;
 
@@ -91,6 +103,32 @@ public class ShortRecipeRepository {
     public Mono<ShortRecipeDTO> getRecipeShortById(Long id) {
         Mono<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxById(id);
         return getOneShortRecipeDTO(flatRows);
+    }
+
+    public Flux<ShortRecipeDTO> findSimilarRecipes(Long recipeId, Long limit) {
+        return client.sql(SELECT_EMBEDDING_SQL)
+                .bind("recipeId", recipeId)
+                .map(row -> row.get("embedding", Float[].class))
+                .one()
+                .flatMapMany(targetEmbeddingFloats -> {
+                    Objects.requireNonNull(targetEmbeddingFloats, "Embedding not found for recipe ID: " + recipeId);
+
+                    String similarRecipesSql = GET_RECIPE_EMBEDDING_SQL + """
+                            WHERE r.id != :recipeId
+                            ORDER BY e.embedding <-> (:targetEmbedding::vector)
+                            LIMIT :limit
+                            """;
+
+                    return client.sql(similarRecipesSql)
+                            .bind("recipeId", recipeId)
+                            .bind("targetEmbedding", targetEmbeddingFloats)
+                            .bind("limit", limit)
+                            .map((row, meta) -> getFlatShortRecipeRow(row))
+                            .all()
+                            .groupBy(FlatShortRecipeRow::getRecipeId)
+                            .flatMap(group -> group.collectList().mapNotNull(this::getShortRecipeDTO));
+                })
+                .switchIfEmpty(Flux.empty());
     }
 
     private Mono<ShortRecipeDTO> getOneShortRecipeDTO(Mono<FlatShortRecipeRow> flatRows) {
