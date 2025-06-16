@@ -33,12 +33,12 @@ public class RecipeController {
         return customService.getById(id);
     }
 
-    @GetMapping("/recommended/{id}/{limit}")
+    @GetMapping("/recommended/{id}/{size}")
     public Flux<ShortRecipeDTO> getRecommendedRecipes(
             @PathVariable Long id,
-            @PathVariable Long limit
+            @PathVariable Long size
     ) {
-        return customService.getRecommendedRecipes(id, limit);
+        return customService.getRecommendedRecipes(id, size);
     }
 
     @GetMapping("/")
@@ -81,10 +81,10 @@ public class RecipeController {
     @GetMapping("/user/v2/{id}")
     public Flux<ShortRecipeDTO> getAllUsersRecipesPageable(
             @PathVariable String id,
-            @RequestParam Long offset,
-            @RequestParam Long limit
+            @RequestParam Long page,
+            @RequestParam Long size
     ) {
-        return customService.getAllByUserPageable(id, offset, limit);
+        return customService.getAllByUserPageable(id, page, size);
     }
 
     @PostMapping(path = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -143,9 +143,9 @@ public class RecipeController {
     @GetMapping("/favourites/v2/{id}")
     public Flux<ShortRecipeDTO> getFavouriteRecipesPageable(
             @PathVariable String id,
-            @RequestParam Integer offset,
-            @RequestParam Integer limit
+            @RequestParam Integer page,
+            @RequestParam Integer size
     ) {
-        return customService.getFavouriteRecipesPageable(id, offset, limit);
+        return customService.getFavouriteRecipesPageable(id, page, size);
     }
 }

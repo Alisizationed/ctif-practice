@@ -43,8 +43,8 @@ public class ShortRecipeRepository {
                         .mapNotNull(this::getShortRecipeDTO));
     }
 
-    public Flux<ShortRecipeDTO> getAllRecipesShortPageable(Long offset, Long limit) {
-        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxPageable(limit, limit);
+    public Flux<ShortRecipeDTO> getAllRecipesShortPageable(Long page, Long size) {
+        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxPageable(page, size);
         return flatRows
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()
@@ -77,10 +77,10 @@ public class ShortRecipeRepository {
                 .all();
     }
 
-    private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxPageable(Long offset, Long limit) {
+    private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxPageable(Long page, Long size) {
         return client.sql(GET_RECIPES_SQL + "LIMIT :limit OFFSET :offset")
-                .bind("limit", limit)
-                .bind("offset", offset)
+                .bind("limit", size)
+                .bind("offset", page * size)
                 .map((row, meta) -> getFlatShortRecipeRow(row))
                 .all();
     }
@@ -92,11 +92,11 @@ public class ShortRecipeRepository {
                 .all();
     }
 
-    private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxByUserPageable(String id, Long offset, Long limit) {
+    private Flux<FlatShortRecipeRow> getFlatShortRecipeRowFluxByUserPageable(String id, Long page, Long limit) {
         return client.sql(GET_RECIPES_SQL + "WHERE r.created_by = $1 LIMIT $2 OFFSET $3")
                 .bind(0, id)
                 .bind(1, limit)
-                .bind(2, offset)
+                .bind(2, page * limit)
                 .map((row, meta) -> getFlatShortRecipeRow(row))
                 .all();
     }
@@ -109,8 +109,8 @@ public class ShortRecipeRepository {
                         .mapNotNull(this::getShortRecipeDTO));
     }
 
-    public Flux<ShortRecipeDTO> getAllRecipesShortByUserPageable(String id, Long offset, Long limit) {
-        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxByUserPageable(id,offset,limit);
+    public Flux<ShortRecipeDTO> getAllRecipesShortByUserPageable(String id, Long page, Long limit) {
+        Flux<FlatShortRecipeRow> flatRows = getFlatShortRecipeRowFluxByUserPageable(id,page,limit);
         return flatRows
                 .groupBy(FlatShortRecipeRow::getRecipeId)
                 .flatMap(group -> group.collectList()

@@ -39,7 +39,7 @@ public class AccountsService {
                 .flatMapMany(token -> webClient.get()
                         .uri(uriBuilder -> uriBuilder
                                 .path(favouritesEndpointV2)
-                                .queryParam("offset", page)
+                                .queryParam("offset", page * size)
                                 .queryParam("limit", size)
                                 .build(id)
                         )

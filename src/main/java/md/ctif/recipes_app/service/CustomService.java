@@ -24,20 +24,20 @@ public class CustomService {
         return shortRecipeRepository.getAllRecipesShort();
     }
 
-    public Flux<ShortRecipeDTO> getAllPageable(Long offset, Long limit) {
-        return shortRecipeRepository.getAllRecipesShortPageable(offset, limit);
+    public Flux<ShortRecipeDTO> getAllPageable(Long offset, Long size) {
+        return shortRecipeRepository.getAllRecipesShortPageable(offset, size);
     }
 
     public Flux<ShortRecipeDTO> getAllByUser(String id) {
         return shortRecipeRepository.getAllRecipesShortByUser(id);
     }
 
-    public Flux<ShortRecipeDTO> getAllByUserPageable(String id,Long offset, Long limit) {
-        return shortRecipeRepository.getAllRecipesShortByUserPageable(id, offset, limit);
+    public Flux<ShortRecipeDTO> getAllByUserPageable(String id,Long page, Long size) {
+        return shortRecipeRepository.getAllRecipesShortByUserPageable(id, page, size);
     }
 
-    public Flux<ShortRecipeDTO> getRecommendedRecipes(Long id, Long limit) {
-        return shortRecipeRepository.findSimilarRecipes(id,limit);
+    public Flux<ShortRecipeDTO> getRecommendedRecipes(Long id, Long size) {
+        return shortRecipeRepository.findSimilarRecipes(id,size);
     }
 
     public Flux<ShortRecipeDTO> getFavouriteRecipes(String id) {
@@ -45,8 +45,8 @@ public class CustomService {
                 .flatMap(recipeId -> shortRecipeRepository.getRecipeShortById(recipeId));
     }
 
-    public Flux<ShortRecipeDTO> getFavouriteRecipesPageable(String id, Integer offset, Integer limit) {
-        return accountsService.getFavouriteRecipesPageable(id,offset,limit)
+    public Flux<ShortRecipeDTO> getFavouriteRecipesPageable(String id, Integer page, Integer size) {
+        return accountsService.getFavouriteRecipesPageable(id,page,size)
                 .flatMap(recipeId -> shortRecipeRepository.getRecipeShortById(recipeId));
     }
 }
