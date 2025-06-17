@@ -1,5 +1,6 @@
 package md.ctif.recipes_app.api;
 
+import md.ctif.recipes_app.service.AccountsService;
 import md.ctif.recipes_app.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -16,6 +17,8 @@ import reactor.core.scheduler.Schedulers;
 public class ImageController {
     @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private AccountsService accountsService;
 
     @GetMapping("/images/{filename}")
     public Mono<Resource> getImage(@PathVariable String filename) {
@@ -46,5 +49,15 @@ public class ImageController {
             @RequestPart("image") FilePart filePart
     ) {
         return fileStorageService.saveFile(filePart);
+    }
+
+    @PostMapping(path="/profile/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<ResponseEntity<String>> saveProfilePicture(
+            @PathVariable String id,
+            @RequestPart("image") FilePart filePart
+    ) {
+        return fileStorageService.saveFile(filePart)
+                .flatMap(filename -> accountsService.setProfilePicture(id, filename)
+                        .then(Mono.just(ResponseEntity.ok("Profile picture uploaded"))));
     }
 }

@@ -82,3 +82,4 @@ accounts:
   url: https://localhost:8463
   favourites-endpoint: "/api/users/favourite/{username}"
   favourites-endpoint-v2: "/api/users/favourite/v2/{username}"
+  picture-endpoint: "/api/users/picture/{id}"
