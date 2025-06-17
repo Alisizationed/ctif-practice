@@ -131,7 +131,7 @@ public class RecipeController {
     }
 
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteRecipe(@PathVariable Long id) {
+    public Mono<ResponseEntity<String>> deleteRecipe(@PathVariable Long id) {
         return recipeService.deleteById(id);
     }
 
