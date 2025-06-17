@@ -31,8 +31,6 @@ public class R2dbcConfig {
 
         converters.add(new JsonNodeReadConverter(objectMapper));
         converters.add(new JsonNodeWriteConverter(objectMapper));
-        converters.add(new PGvectorWriteConverter());
-        converters.add(new PGvectorReadConverter());
 
         return R2dbcCustomConversions.of(PostgresDialect.INSTANCE, converters);
     }
@@ -69,32 +67,6 @@ public class R2dbcConfig {
                 return Json.of(objectMapper.writeValueAsString(source));
             } catch (JsonProcessingException e) {
                 throw new RuntimeException("Failed to convert JsonNode to JSONB", e);
-            }
-        }
-    }
-
-    @WritingConverter
-    public static class PGvectorWriteConverter implements Converter<PGvector, String> {
-        @Override
-        public String convert(PGvector source) {
-            if (source == null) {
-                return null;
-            }
-            return source.toString();
-        }
-    }
-
-    @ReadingConverter
-    public static class PGvectorReadConverter implements Converter<String, PGvector> {
-        @Override
-        public PGvector convert(String source) {
-            if (source == null || source.isEmpty()) {
-                return null;
-            }
-            try {
-                return new PGvector(source);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Failed to parse PGvector from string: " + source, e);
             }
         }
     }
