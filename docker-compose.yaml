@@ -45,8 +45,8 @@ services:
       KEYCLOAK_DATABASE_PASSWORD: postgres
       KEYCLOAK_ENABLE_HTTPS: "true"
       KEYCLOAK_HTTPS_USE_PEM: "true"
-      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE : /resources/fullchain.pem
-      KEYCLOAK_HTTPS_CERTIFICATE_FILE : /resources/fullchain.pem
+      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /resources/fullchain.pem
+      KEYCLOAK_HTTPS_CERTIFICATE_FILE: /resources/fullchain.pem
       KEYCLOAK_HOSTNAME: "www.mykeycloak.com"
       KEYCLOAK_HOSTNAME_STRICT: "false"
       KEYCLOAK_HTTP_RELATIVE_PATH: /auth

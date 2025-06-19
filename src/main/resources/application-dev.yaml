@@ -1,0 +1,91 @@
+spring:
+  application:
+    name:
+      recipes-app
+  docker:
+    compose:
+      enabled: false
+  webflux:
+    multipart:
+      max-in-memory-size: 1MB
+      max-part-size: 5MB
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/recipe_db
+    username: postgres
+    password: postgres
+  ai:
+    vectorstore:
+      pgvector:
+      index-type: HNSW
+      distance-type: COSINE_DISTANCE
+      dimensions: 1536
+      max-document-batch-size: 10000
+
+  flyway:
+    url: jdbc:postgresql://localhost:5432/recipe_db
+    user: postgres
+    password: postgres
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  properties:
+    hibernate:
+      format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://www.mykeycloak.com:8040/auth/realms/recipe-app
+          jwk-set-uri: "${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs"
+
+
+# Server config (optional)
+server:
+  port: 8453
+  ssl:
+    key-alias: "recipessl"
+    key-password: "SSLkeystorePASS1"
+    key-store: "classpath:recipessl.pfx"
+    key-store-password: "SSLkeystorePASS1"
+    trust-store: "classpath:recipessl.pfx"
+    trust-store-password: "SSLkeystorePASS1"
+    enabled: true
+
+# Logging (optional)
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.springframework.boot.context.config: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs.yaml
+  swagger-ui:
+    path: /swagger-ui/index.html
+
+storage:
+  "C:/Users/Jack/new-works/storage"
+
+cors:
+  allowed-origins:
+    "http://localhost:3000,http://localhost:5173"
+  allowed-methods:
+    "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers:
+    "*"
+  allow-credentials: true
+
+accounts:
+  url: https://localhost:8463
+  favourites-endpoint: "/api/users/favourite/{username}"
+  favourites-endpoint-v2: "/api/users/favourite/v2/{username}"
+  picture-endpoint: "/api/users/picture/{id}"
+
+ai:
+  url: https://localhost:13434
+  model-name: "nomic-embed-text"
+  path: "/api/embeddings"

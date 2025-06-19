@@ -1,5 +1,7 @@
 package md.ctif.recipes_app.service;
 
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import md.ctif.recipes_app.entity.Tag;
 import md.ctif.recipes_app.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,20 +9,11 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@AllArgsConstructor
 @Service
 public class TagService {
-    @Autowired
     private TagRepository tagRepository;
-    @Autowired
     private RecipeTagService recipeTagService;
-
-    public Mono<Tag> getById(Long id) {
-        return tagRepository.findById(id);
-    }
-
-    public Flux<Tag> getAll() {
-        return tagRepository.findAll();
-    }
 
     public Mono<Tag> save(String tag, Long recipeId) {
         return tagRepository.findByTag(tag)
@@ -31,10 +24,6 @@ public class TagService {
                         recipeTagService.saveById(savedTag.getId(), recipeId)
                                 .thenReturn(savedTag)
                 );
-    }
-
-    public Mono<Void> delete(Long id) {
-        return tagRepository.deleteById(id);
     }
 
     public Mono<Void> update(Flux<Tag> tags, Long recipeId) {
@@ -48,5 +37,4 @@ public class TagService {
                 ))
                 .then();
     }
-
 }

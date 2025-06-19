@@ -27,7 +27,7 @@ public class KeycloakJwtRolesConverter implements Converter<Jwt, Collection<Gran
             List<String> realmRoles = getRolesFromClaim(realmAccess);
             authorities.addAll(realmRoles.stream()
                     .map(role -> new SimpleGrantedAuthority(PREFIX_REALM_ROLE + role))
-                    .collect(Collectors.toList()));
+                    .toList());
         }
 
         // Extract resource roles

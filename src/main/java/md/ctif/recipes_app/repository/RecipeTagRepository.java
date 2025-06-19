@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface RecipeTagRepository extends ReactiveCrudRepository<RecipeTag, Long> {
-    public Mono<RecipeTag> findByRecipeIdAndTagId(Long recipeId, Long tagId);
+    Mono<RecipeTag> findByRecipeIdAndTagId(Long recipeId, Long tagId);
 
     Mono<Void> deleteByRecipeId(Long recipeId);
 }

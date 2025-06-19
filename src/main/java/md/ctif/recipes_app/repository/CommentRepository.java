@@ -9,30 +9,16 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @Repository
 public interface CommentRepository extends ReactiveCrudRepository<Comment, Long> {
     Flux<Comment> findAllByParentCommentIdAndRecipeId(Long parentCommentId, Long recipeId, Pageable pageable);
 
-    List<Comment> findByParentCommentId(Long parentCommentId);
-    // Find root comments for a recipe with pagination
-    @Query("SELECT * FROM comments WHERE parent_comment_id IS NULL AND recipe_id = :recipeId ORDER BY created_at DESC LIMIT :limit OFFSET :offset")
-    Flux<Comment> findAllByParentCommentIdAndRecipeId(@Param("recipeId") Long recipeId, @Param("limit") int limit, @Param("offset") long offset);
-
-    // Alternative using Spring Data naming convention
     Flux<Comment> findByParentCommentIdIsNullAndRecipeIdOrderByCreatedAtDesc(Long recipeId, Pageable pageable);
 
-    // Find all children of a parent comment
     Flux<Comment> findByParentCommentIdOrderByCreatedAtAsc(Long parentCommentId);
 
-    // Count children
     Mono<Long> countByParentCommentId(Long parentCommentId);
 
-    // Find all comments for a recipe (for building complete trees)
-    Flux<Comment> findByRecipeIdOrderByCreatedAtAsc(Long recipeId);
-
-    // Find comment with all its descendants (recursive query)
     @Query("""
         WITH RECURSIVE comment_tree AS (
             SELECT id, content, recipe_id, parent_comment_id, created_at, created_by, updated_at, updated_by, 0 as level

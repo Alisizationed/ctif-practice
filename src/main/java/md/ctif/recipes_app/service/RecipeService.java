@@ -22,6 +22,8 @@ public class RecipeService {
     private final TagService tagService;
     private final IngredientService ingredientService;
     private final EmbeddingService embeddingService;
+    private final RecipeTagService recipeTagService;
+    private final RecipeIngredientService recipeIngredientService;
 
     public Mono<ResponseEntity<String>> save(RecipeDTO recipeDTO) {
         Recipe recipe = new Recipe(recipeDTO);
@@ -71,13 +73,18 @@ public class RecipeService {
                         .switchIfEmpty(Mono.error(new RuntimeException("Recipe not found with ID: " + id)))
                         .flatMap(existingRecipe -> {
                                     if (existingRecipe.getCreatedBy().equals(sub)) {
-                                        return recipeRepository.deleteById(id)
-                                                .then(Mono.just(ResponseEntity.ok("Recipe deleted with ID: " + id)));
+                                        return deleteRecipeCascade(id);
                                     }
                                     return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
                                 }
                         )
                 );
+    }
+
+    private Mono<ResponseEntity<String>> deleteRecipeCascade(Long id) {
+        return Mono.when(recipeTagService.deleteByRecipeId(id), recipeIngredientService.deleteByRecipeId(id))
+                .then(recipeRepository.deleteById(id))
+                .then(Mono.just(ResponseEntity.ok("Recipe deleted with ID: " + id)));
     }
 
 
